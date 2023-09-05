@@ -44,6 +44,10 @@ class KlipperScreenConfig:
         self.defined_config = None
         self.lang = None
         self.langs = {}
+        #add by Sampson for poweroff resume at 20230817
+        self.klippy_config_path = os.path.join(os.path.expanduser("~/"), "printer_data", "klipper.conf")
+        self.klippy_config = configparser.ConfigParser()
+        #add end
 
         try:
             self.config.read(self.default_config_path)
@@ -71,6 +75,9 @@ class KlipperScreenConfig:
                         logging.info(f"====== Saved Def ======\n{saved_def}\n=======================")
             # This is the final config
             # self.log_config(self.config)
+            #add by Sampson for poweroff resume at 20230817
+            self.klippy_config.read(self.klippy_config_path)
+            #add end
         except KeyError as Kerror:
             msg = f"Error reading config: {self.config_path}\n{Kerror}"
             logging.exception(msg)
@@ -154,7 +161,7 @@ class KlipperScreenConfig:
             bools = strs = numbers = ()
             if section == 'main':
                 bools = (
-                    'invert_x', 'invert_y', 'invert_z', '24htime', 'only_heaters', 'show_cursor', 'confirm_estop',
+                    'invert_x', 'invert_y', 'invert_z', '24htime', 'auto_shutdown_print_finish', 'only_heaters', 'show_cursor', 'confirm_estop',
                     'autoclose_popups', 'use_dpms', 'use_default_menu', 'side_macro_shortcut', 'use-matchbox-keyboard',
                     'show_heater_power', "show_scroll_steppers",
                 )
@@ -259,6 +266,8 @@ class KlipperScreenConfig:
                     {"name": _("Never"), "value": "off"}]
             }},
             {"24htime": {"section": "main", "name": _("24 Hour Time"), "type": "binary", "value": "True"}},
+            {"auto_shutdown_print_finish": {"section": "main", "name": _("Auto Shutdown After Print Finish"), "type": "binary",
+                                               "value": "False", "callback": screen.change_auto_shutdown_flag}},
             {"side_macro_shortcut": {
                 "section": "main", "name": _("Macro shortcut on sidebar"), "type": "binary",
                 "value": "True", "callback": screen.toggle_shortcut}},

@@ -112,7 +112,10 @@ class KlipperScreen(Gtk.Window):
         self.lang_ltr = set_text_direction(self._config.get_main_config().get("language", None))
         self.env = Environment(extensions=["jinja2.ext.i18n"], autoescape=True)
         self.env.install_gettext_translations(self._config.get_lang())
-
+        #add by Sampson for poweroff resume at 20230817
+        self.is_poweroff_resume = self._config.klippy_config.get("Variables", "resumeflag")
+        #add end
+		
         self.connect("key-press-event", self._key_press_event)
         self.connect("configure_event", self.update_size)
         monitor = Gdk.Display.get_default().get_primary_monitor()
@@ -155,6 +158,11 @@ class KlipperScreen(Gtk.Window):
 
         self.initial_connection()
 
+        #add by Sampson for auto shutdown after printing finish at 20230817 begin
+        is_auto_shutdown = self._config.get_main_config().get('auto_shutdown_print_finish')
+        self.change_auto_shutdown_flag(is_auto_shutdown)
+        #add end
+        
     def initial_connection(self):
         self.printers = self._config.get_printers()
         state_callbacks = {
@@ -671,6 +679,18 @@ class KlipperScreen(Gtk.Window):
             return
         self.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
 
+        # add by Sampson for poweroff resume at 20230816 begin
+        logging.info(f"resume flag(int): {int(self.is_poweroff_resume)}")
+        if int(self.is_poweroff_resume) == 1:
+            if self._ws.connected:
+            #if True:
+                script = {"script": "POWEROFF_RESUME"}
+                self._confirm_send_action(None,
+                                              _("Power loss recovery, is resume print?"),
+                                              "printer.gcode.script", script)
+                self.is_poweroff_resume = 0
+        #add end
+
     def state_startup(self):
         self.printer_initializing(_("Klipper is attempting to start"))
 
@@ -788,7 +808,11 @@ class KlipperScreen(Gtk.Window):
             self._send_action(None, method, params)
         if method == "server.files.delete_directory":
             GLib.timeout_add_seconds(2, self.files.refresh_files)
-
+            
+        #add by Sampson for poweroff resume at 20230817 begin
+        if params == {"script": "POWEROFF_RESUME"} and response_id == Gtk.ResponseType.CANCEL:
+            self._send_action(None, method, {"script": "REMOVE_POWEROFF_RESUME"})
+        #add end
     def _send_action(self, widget, method, params):
         logging.info(f"{method}: {params}")
         if isinstance(widget, Gtk.Button):
@@ -1013,6 +1037,13 @@ class KlipperScreen(Gtk.Window):
             self.aspect_ratio = new_ratio
             logging.info(f"Vertical mode: {self.vertical_mode}")
 
+    #add by Sampson for auto shutdown after printing finish at 20230817 begin
+    def change_auto_shutdown_flag(self, value):
+        scripe = {"script": "AUTO_SHUTDOWN_OFF"}
+        if value :
+            scripe = {"script": "AUTO_SHUTDOWN"}
+        self._send_action(None, "printer.gcode.script", scripe)
+    #add end
 
 def main():
     minimum = (3, 7)
