@@ -114,7 +114,7 @@ class KlipperScreen(Gtk.Window):
         self.env = Environment(extensions=["jinja2.ext.i18n"], autoescape=True)
         self.env.install_gettext_translations(self._config.get_lang())
         #add by Sampson for poweroff resume at 20230817
-        self.is_poweroff_resume = self._config.klippy_config.get("Variables", "resumeflag")
+        self.is_poweroff_resume = self._config.klippy_config.get("Variables", "resumeflag", fallback=0)
         #add end
 		
         self.connect("key-press-event", self._key_press_event)
@@ -690,15 +690,18 @@ class KlipperScreen(Gtk.Window):
         self.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
 
         # add by Sampson for poweroff resume at 20230816 begin
-        logging.info(f"resume flag(int): {int(self.is_poweroff_resume)}")
-        if int(self.is_poweroff_resume) == 1:
-            if self._ws.connected:
-            #if True:
-                script = {"script": "POWEROFF_RESUME"}
-                self._confirm_send_action(None,
-                                              _("Power loss recovery, is resume print?"),
-                                              "printer.gcode.script", script)
-                self.is_poweroff_resume = 0
+        # logging.info(f"resume flag(int): {int(self.is_poweroff_resume)}")
+        # if int(self.is_poweroff_resume) == 1:
+        #     if self._ws.connected:
+        #     #if True:
+        #         script = {"script": "POWEROFF_RESUME"}
+        #         self._confirm_send_action(None,
+        #                                       _("Power loss recovery, is resume print?"),
+        #                                       "printer.gcode.script", script)
+        #         self.is_poweroff_resume = 0
+        #add end
+        #add by yaoxishun for self-test at 20230911
+        self.gtk.creat_self_test_dialog()
         #add end
 
     def state_startup(self):

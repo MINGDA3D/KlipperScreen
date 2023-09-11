@@ -41,7 +41,7 @@ class Panel(ScreenPanel):
             self.bsidescale = .55
         self.img_width = self.font_size * 3
         self.img_height = self.font_size * 3
-        self.print_mode = self._config.klippy_config.get("Variables", "printmode")
+        self.print_mode = self._config.klippy_config.get("Variables", "printmode", fallback=0)
 
         # Create gtk items here
         self.buttons = {
