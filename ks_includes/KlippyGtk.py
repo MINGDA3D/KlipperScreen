@@ -28,12 +28,19 @@ def format_label(widget, lines=2):
         label.set_lines(lines)
 
 #add by Sampson for self-test at 20230911 begin
-def create_labels():
-    label_texts = ["Nozzle Heating", "Bed Heating", "Hotend Cooling Fan", "Part Cooling Fan", "Material Detect"]
+def create_labels(label_texts):
     labels = []
     for text in label_texts:
+        #label = Gtk.Label()
+        #set_label_text_color(label, text, "white")
         label = Gtk.Label()
-        set_label_text_color(label, text, "white")
+        label.set_markup(text)
+        # label.set_hexpand(True)
+        # label.set_halign(Gtk.Align.START)
+        # label.set_vexpand(True)
+        # label.set_valign(Gtk.Align.START)
+        #label.set_line_wrap(True)
+        # label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
         labels.append(label)
     return labels
 
@@ -97,6 +104,15 @@ class KlippyGtk:
         self.button_image_scale = 1.38
         self.bsidescale = .65  # Buttons with image at the side
 
+        #add by Sampson for self-test at 20230911 begin 
+        self.themedir = os.path.join(pathlib.Path(__file__).parent.resolve().parent, "styles", screen.theme, "images")
+        self.image_pass = os.path.join(self.themedir, "check_pass.svg")
+        self.image_fail = os.path.join(self.themedir, "check_fail.svg")
+        self.image_loading = os.path.join(self.themedir, "loading.gif")
+        self.images = []
+        self.test_items = ["Nozzle Heating", "Bed Heating", "Nozzle Cooling Fan", "Hotend Cooling Fan", "Material Detect"]
+        # self.btn = Gtk.Button(label=f"Continue")
+        #add end
         if self.font_size_type == "max":
             self.font_size = self.font_size * 1.2
             self.bsidescale = .7
@@ -299,42 +315,69 @@ class KlippyGtk:
         logging.info(f"Showing dialog {dialog.get_title()} {dialog.get_size()}")
         return dialog
 
-    #add by Sampson for self-test at 20230911 begin 
+    #add by Sampson for self-test at 20230911 begin  
+    def remove_all_dialog(self):
+        self.close_screensaver()
+        for dialog in self.screen.dialogs:
+            self.remove_dialog(dialog)
+
+    # def enable_button(self):
+    #     self.btn.set_sensitive(True)
+
     def creat_self_test_dialog(self):
-        dialog = Gtk.Dialog(title="Printer Self-Test")
+        dialog = Gtk.Dialog(title="KlipperScreen")
         dialog.set_default_size(self.width, self.height)
         dialog.set_resizable(False)
         dialog.set_transient_for(self.screen)
         dialog.set_modal(True)
 
         self_test_label = Gtk.Label()
-        set_label_text_color(self, self_test_label, f"Printer Self-Test", f"white")
+        set_label_text_color(self_test_label, f"Printer Self-Test", f"white")
+        # set_label_text_color(self_test_label, "Do not touch the printer during power-on self-test.", "red")
         set_text_font_size(self_test_label, 26)
     
-        labels = create_labels()
+        labels = create_labels(self.test_items)
         images = create_images(len(labels))
-        
+        self.images = images
+
         warning_label = Gtk.Label()
-        set_label_text_color(warning_label, f"Do not touch the printer during power-on self-test.", f"red")
-        set_text_font_size(warning_label, 16)
+        set_label_text_color(warning_label, "Do not touch the printer during power-on self-test.", "red")
+        # warning_label.set_text("Self-test Ended")
+        # set_text_font_size(warning_label, 21)
         
-        image_pass = f"check_pass.svg"
-        image_fail = f"check_fail.svg"
-        images[0].set_from_file(image_pass)
-        images[1].set_from_file(image_fail)
-        images[2].set_from_file("loading.gif")
-    
-        vbox = Gtk.VBox(spacing=30)
-        dialog.add(vbox)
+        # images[0].set_from_file(image_pass)
+        # images[1].set_from_file(image_fail)
+        #images[0].set_from_file(image_loading)
+
+        # btn = Gtk.Button(label=f"Continue")
+        # msg.set_hexpand(True)
+        # msg.set_vexpand(True)
+        # msg.get_child().set_line_wrap(True)
+        # msg.get_child().set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        # msg.get_child().set_max_width_chars(40)
+        # self.btn.set_sensitive(False)
+        # self.btn.connect("clicked", self.remove_all_dialog)
+
+        vbox = Gtk.VBox(spacing=self.height*0.1)
+        dialog.get_style_context().add_class("dialog")
+
+        content_area = dialog.get_content_area()
+        content_area.set_margin_start(15)
+        content_area.set_margin_end(15)
+        content_area.set_margin_top(15)
+        content_area.set_margin_bottom(15)
+        content_area.add(vbox)
+        #dialog.add(vbox)
     
         vbox.pack_start(center_widgets(self_test_label), False, False, 0)
         for i in range(len(labels)):
-            hbox = Gtk.HBox(spacing=50)
+            hbox = Gtk.HBox(spacing=self.width*0.3)
             hbox.pack_start(labels[i], True, False, 0)
             hbox.pack_start(images[i], True, False, 0)
             vbox.pack_start(center_widgets(hbox), True, False, 0)
     	
         vbox.pack_start(center_widgets(warning_label), True, False, 0)
+        # vbox.pack_start(center_widgets(self.btn), True, False, 0)
 
         dialog.show_all()
         # Change cursor to blank
@@ -348,6 +391,16 @@ class KlippyGtk:
         self.screen.dialogs.append(dialog)
         logging.info(f"Showing dialog {dialog.get_title()} {dialog.get_size()}")
         return dialog
+
+    def change_state(self, step, state):
+        if step < 0 and step > len(self.images):
+            return
+        imagePath = self.image_loading
+        if state == -1:
+            imagePath = self.image_fail
+        elif state == 0:
+            imagePath = self.image_pass
+        self.images[step].set_from_file(imagePath)
 #add end
 
     def remove_dialog(self, dialog, *args):

@@ -10,6 +10,7 @@ import traceback  # noqa
 import locale
 import sys
 import gi
+import time
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, GLib, Pango
@@ -694,8 +695,90 @@ class KlipperScreen(Gtk.Window):
         #                                       "printer.gcode.script", script)
         #         self.is_poweroff_resume = 0
         #add end
-        #add by yaoxishun for self-test at 20230911
+        #add by Sampson for self-test at 20230911
         self.gtk.creat_self_test_dialog()
+
+        if True:
+            for i in range(len(self.gtk.test_items)):
+                self.gtk.change_state(i, 1)
+
+        # "Nozzle Heating", "Bed Heating", "Hotend Cooling Fan", "Part Cooling Fan", "Material Detect"
+        tool_target = 60
+        bed_target = 45
+        fan_speed = 50
+        fans = self.printer.get_fans()
+        time_out = 10000
+        
+        #Nozzle Heating
+        for extruder in self.printer.get_tools():
+            self._ws.klippy.set_tool_temp(self._printer.get_tool_number(extruder), tool_target)
+        #Bed Headting
+        self._ws.klippy.set_bed_temp(bed_target)
+        for fan in fans:
+            name = fan.split()[1]
+            if name.startswith("Hotend"):
+                #Hotend Cooling Fan
+                self._ws.klippy.gcode_script(f"SET_FAN_SPEED FAN={name} SPEED={float(fan_speed) / 100}")
+                self._ws.klippy.gcode_script(f"SET_FAN_SPEED FAN={name} SPEED={float(fan_speed) / 100}")
+        #Nozzle Cooling Fan
+        self._ws.klippy.gcode_script(f"M106 S{fan_speed * 2.55:.0f}")
+        steps = [x for x in range(len(self.gtk.test_items))]
+        
+        while True:
+            for step in steps:
+                is_ok = True
+                if step == 0:
+                    for extruder in self.printer.get_tools():
+                        temp = self.printer.get_dev_stat(extruder, "temperature")
+                        if temp < tool_target:
+                            is_ok = False
+                            break
+                elif step == 1:
+                    for dev in self.printer.get_heaters():
+                        if dev == "heater_bed":
+                            temp = self.printer.get_dev_stat("heater_bed", "temperature")
+                            if temp < bed_target:
+                                is_ok = False
+                elif step == 2:
+                    for fan in fans:
+                        if fan == "fan":
+                            speed = self.printer.get_fan_speed("fan")
+                            if speed < fan_speed * 2.55:
+                                is_ok = False
+                elif step == 3:
+                    for fan in fans:
+                        speed = self.printer.get_fan_speed(fan)
+                        if (speed < 0.5):
+                            is_ok = False
+                elif step == 4:
+                    filament_sensors = self.printer.get_filament_sensors()
+                    for fs in filament_sensors:
+                        if self.printer.get_stat(fs, "enabled") :
+                            if not self.printer.get_stat(fs, "filament_detected"):
+                                is_ok = False
+                        else:
+                            is_ok = False
+                if is_ok:
+                    self.gtk.change_state(step, 0)
+                    steps.remove(step)
+                    logging.debug("444444444444")                
+            if len(steps) == 0:
+                logging.debug("555555555")                
+                break
+
+            if(time_out < 0):
+                for step in steps:
+                    self.gtk.change_state(step, -1)
+                logging.debug("666666666")                
+                break
+        time_out = time_out - 1
+        
+        logging.debug("33333333333333")
+        # self.gtk.enable_button()
+        self.close_screensaver()
+        for dialog in self.dialogs:
+            self.gtk.remove_dialog(dialog)
+        #self.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
         #add end
 
     def state_startup(self):
@@ -735,6 +818,7 @@ class KlipperScreen(Gtk.Window):
             self.printer.change_state(self.printer.state)
 
     def _websocket_callback(self, action, data):
+        # logging.debug("111111111111111111111")
         if self.connecting:
             return
         if action == "notify_klippy_disconnected":
