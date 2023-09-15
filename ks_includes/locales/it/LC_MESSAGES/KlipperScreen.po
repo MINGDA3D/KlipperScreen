@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-04 22:18-0300\n"
+"POT-Creation-Date: 2023-09-12 08:17-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Pappicio\n"
 "Language-Team: \n"
@@ -10,8 +10,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 5.0.1-dev\n"
 
 #, python-format
 msgid "%s will be updated to version"
@@ -160,9 +160,6 @@ msgstr "Connessione a %s"
 
 msgid "Console"
 msgstr "Consolle"
-
-msgid "Continue"
-msgstr "Continua"
 
 msgid "Cooldown"
 msgstr "Raffreddare"
@@ -559,7 +556,7 @@ msgid "Raise Nozzle"
 msgstr "Alza ugello"
 
 msgid "Recover"
-msgstr "Ripristino "
+msgstr "Ripristino"
 
 msgid "Recover Hard"
 msgstr "Ripristino Hard"
@@ -795,6 +792,9 @@ msgstr "mm/s²"
 
 msgid "mm³/s"
 msgstr "mm³/s"
+
+#~ msgid "Continue"
+#~ msgstr "Continua"
 
 #~ msgid "Actions"
 #~ msgstr "Azioni"
