@@ -713,7 +713,9 @@ class KlipperScreen(Gtk.Window):
         for extruder in self.printer.get_tools():
             self._ws.klippy.set_tool_temp(self._printer.get_tool_number(extruder), tool_target)
         #Bed Headting
-        self._ws.klippy.set_bed_temp(bed_target)
+        for dev in self.printer.get_heaters():
+            if dev == "heater_bed":        
+                self._ws.klippy.set_bed_temp(bed_target)
         for fan in fans:
             name = fan.split()[1]
             if name.startswith("Hotend"):
@@ -721,7 +723,9 @@ class KlipperScreen(Gtk.Window):
                 self._ws.klippy.gcode_script(f"SET_FAN_SPEED FAN={name} SPEED={float(fan_speed) / 100}")
                 self._ws.klippy.gcode_script(f"SET_FAN_SPEED FAN={name} SPEED={float(fan_speed) / 100}")
         #Nozzle Cooling Fan
-        self._ws.klippy.gcode_script(f"M106 S{fan_speed * 2.55:.0f}")
+        for fan in fans:
+            if fan == "fan":
+                self._ws.klippy.gcode_script(f"M106 S{fan_speed * 2.55:.0f}")
         steps = [x for x in range(len(self.gtk.test_items))]
         
         while True:
@@ -771,13 +775,14 @@ class KlipperScreen(Gtk.Window):
                     self.gtk.change_state(step, -1)
                 logging.debug("666666666")                
                 break
-        time_out = time_out - 1
+            time_out = time_out - 1
         
         logging.debug("33333333333333")
+
         # self.gtk.enable_button()
-        self.close_screensaver()
-        for dialog in self.dialogs:
-            self.gtk.remove_dialog(dialog)
+        # self.close_screensaver()
+        # for dialog in self.dialogs:
+        #     self.gtk.remove_dialog(dialog)
         #self.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
         #add end
 
