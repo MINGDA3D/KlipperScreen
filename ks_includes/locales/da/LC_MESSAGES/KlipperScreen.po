@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: KlipperScreen\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-12 08:17-0300\n"
+"POT-Creation-Date: 2023-10-20 00:09-0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: SRBJ\n"
 "Language-Team: \n"
@@ -360,9 +360,6 @@ msgstr "Klipper forsøger at starte"
 msgid "Klipper will reboot"
 msgstr "Klipper vil genstarte"
 
-msgid "KlipperScreen will reboot"
-msgstr "KlipperScreen vil genstarte"
-
 msgid ""
 "LOAD_FILAMENT/UNLOAD_FILAMENT are hidden and should be used from extrude"
 msgstr ""
@@ -377,6 +374,9 @@ msgid "Last Used"
 msgstr ""
 
 msgid "Layer:"
+msgstr ""
+
+msgid "Leds"
 msgstr ""
 
 msgid "Left:"
@@ -789,6 +789,9 @@ msgstr "mm/s²"
 
 msgid "mm³/s"
 msgstr ""
+
+#~ msgid "KlipperScreen will reboot"
+#~ msgstr "KlipperScreen vil genstarte"
 
 #~ msgid "Continue"
 #~ msgstr "Fortsæt"

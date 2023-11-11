@@ -39,7 +39,7 @@ Execute the following commands:
 
 ```sh
 cd ~/
-git clone https://github.com/jordanruthe/KlipperScreen.git
+git clone https://github.com/KlipperScreen/KlipperScreen.git
 cd ~/KlipperScreen
 ./scripts/KlipperScreen-install.sh
 ```
@@ -66,7 +66,7 @@ trusted_clients:
 
     Will require the [moonraker api key](https://moonraker.readthedocs.io/en/latest/installation/#retrieving-the-api-key) in [KlipperScreen.conf](Configuration.md)
 
-If you wish to use the update manager feature of moonraker for KlipperScreen, add the following block to the moonraker.conf:
+If you wish to use the update manager feature of moonraker for KlipperScreen, add the following block to `moonraker.conf`:
 
 ```ini title="moonraker.conf"
 [update_manager KlipperScreen]
@@ -80,3 +80,19 @@ managed_services: KlipperScreen
 ```
 !!! tip
     If you see warnings in other UIs ignore them until KlipperScreen finishes installing, and Moonraker is restarted.
+
+
+## Printer Configuration
+
+Some basic configuration needs to be applied for correct functionality.
+
+```ini title="printer.cfg"
+[virtual_sdcard]
+path: ~/printer_data/gcodes
+[display_status]
+[pause_resume]
+```
+
+## Macros
+
+You may need some macros for the printer to function as you expected, [read more in the macros page](macros.md)

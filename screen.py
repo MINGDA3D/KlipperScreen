@@ -93,6 +93,7 @@ class KlipperScreen(Gtk.Window):
     initialized = initializing = False
     popup_timeout = None
     wayland = False
+    windowed = False
 
     def __init__(self, args, version):
         try:
@@ -124,12 +125,16 @@ class KlipperScreen(Gtk.Window):
             monitor = Gdk.Display.get_default().get_monitor(0)
         if monitor is None:
             raise RuntimeError("Couldn't get default monitor")
-        self.width = self._config.get_main_config().getint("width", monitor.get_geometry().width)
-        self.height = self._config.get_main_config().getint("height", monitor.get_geometry().height)
-        self.set_default_size(self.width, self.height)
-        self.set_resizable(True)
-        if not (self._config.get_main_config().get("width") or self._config.get_main_config().get("height")):
+        self.width = self._config.get_main_config().getint("width", None)
+        self.height = self._config.get_main_config().getint("height", None)
+        if self.width or self.height:
+            self.set_resizable(True)
+            self.windowed = True
+        else:
+            self.width = monitor.get_geometry().width
+            self.height = monitor.get_geometry().height
             self.fullscreen()
+        self.set_default_size(self.width, self.height)
         self.aspect_ratio = self.width / self.height
         self.vertical_mode = self.aspect_ratio < 1.0
         logging.info(f"Screen resolution: {self.width}x{self.height}")
@@ -288,6 +293,9 @@ class KlipperScreen(Gtk.Window):
             requested_updates['objects'][f] = ["enabled", "filament_detected"]
         for p in self.printer.get_output_pins():
             requested_updates['objects'][p] = ["value"]
+        for led in self.printer.get_leds():
+            requested_updates['objects'][led] = ["color_data"]
+
         self._ws.klippy.object_subscription(requested_updates)
 
     @staticmethod
@@ -389,29 +397,29 @@ class KlipperScreen(Gtk.Window):
         title = Gtk.Label()
         title.set_markup(f"<b>{err}</b>\n")
         title.set_line_wrap(True)
+        title.set_line_wrap_mode(Pango.WrapMode.CHAR)
         title.set_halign(Gtk.Align.START)
         title.set_hexpand(True)
         version = Gtk.Label(label=f"{self.version}")
         version.set_halign(Gtk.Align.END)
 
-        message = Gtk.Label(label=f"{e}")
+        help_msg = _("Provide KlipperScreen.log when asking for help.\n")
+        message = Gtk.Label(label=f"{help_msg}\n\n{e}")
         message.set_line_wrap(True)
         scroll = self.gtk.ScrolledWindow(steppers=False)
         scroll.set_vexpand(True)
+        if self.vertical_mode:
+            scroll.set_size_request(self.gtk.width - 30, self.gtk.height * .6)
+        else:
+            scroll.set_size_request(self.gtk.width - 30, self.gtk.height * .45)
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scroll.add(message)
-
-        help_msg = _("Provide KlipperScreen.log when asking for help.\n")
-        help_msg += _("KlipperScreen will reboot")
-        help_notice = Gtk.Label(label=help_msg)
-        help_notice.set_line_wrap(True)
 
         grid = Gtk.Grid()
         grid.attach(title, 0, 0, 1, 1)
         grid.attach(version, 1, 0, 1, 1)
         grid.attach(Gtk.Separator(), 0, 1, 2, 1)
         grid.attach(scroll, 0, 2, 2, 1)
-        grid.attach(help_notice, 0, 3, 2, 1)
 
         buttons = [
             {"name": _("Go Back"), "response": Gtk.ResponseType.CANCEL}
@@ -522,8 +530,6 @@ class KlipperScreen(Gtk.Window):
     def _menu_go_back(self, widget=None, home=False):
         logging.info(f"#### Menu go {'home' if home else 'back'}")
         self.remove_keyboard()
-        if self._config.get_main_config().getboolean('autoclose_popups', True):
-            self.close_popup_message()
         while len(self._cur_panels) > 1:
             self._remove_current_panel()
             del self._cur_panels[-1]
@@ -546,6 +552,7 @@ class KlipperScreen(Gtk.Window):
         if self.screensaver is not None:
             self.close_screensaver()
         self.remove_keyboard()
+        self.close_popup_message()
         for dialog in self.dialogs:
             logging.debug("Hiding dialog")
             dialog.hide()
@@ -931,6 +938,24 @@ class KlipperScreen(Gtk.Window):
 
         server_info = self.apiclient.get_server_info()["result"]
         logging.info(f"Moonraker info {server_info}")
+        popup = ''
+        level = 2
+        if server_info["warnings"]:
+            popup += '\nMoonraker warnings:\n'
+            for warning in server_info["warnings"]:
+                warning = warning.replace('<br>', '').replace('<br/>', '\n').replace('</br>', '\n').replace(':', ':\n')
+                popup += f"{warning}\n"
+        if server_info["failed_components"]:
+            popup += '\nMoonraker failed components:\n'
+            for failed in server_info["failed_components"]:
+                popup += f'[{failed}]\n'
+        if server_info["missing_klippy_requirements"]:
+            popup += '\nMissing Klipper configuration:\n'
+            for missing in server_info["missing_klippy_requirements"]:
+                popup += f'[{missing}]\n'
+                level = 3
+        if popup:
+            self.show_popup_message(popup, level)
         if "power" in server_info["components"]:
             powerdevs = self.apiclient.send_request("machine/device_power/devices")
             if powerdevs is not False:
@@ -966,6 +991,7 @@ class KlipperScreen(Gtk.Window):
                        + self.printer.get_fans()
                        + self.printer.get_filament_sensors()
                        + self.printer.get_output_pins()
+                       + self.printer.get_leds()
                        )
 
         data = self.apiclient.send_request("printer/objects/query?" + "&".join(PRINTER_BASE_STATUS_OBJECTS +
