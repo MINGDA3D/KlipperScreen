@@ -234,3 +234,7 @@ textview .time {
 .keyboard_pad {
     background-color: #073642; /*base02*/
 }
+
+GtkNotebook {
+    background-color: #FF0000; /* Red background color */
+}

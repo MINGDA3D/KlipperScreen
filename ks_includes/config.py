@@ -44,10 +44,6 @@ class KlipperScreenConfig:
         self.defined_config = None
         self.lang = None
         self.langs = {}
-        #add by Sampson for poweroff resume at 20230817
-        self.klippy_config_path = os.path.join(os.path.expanduser("~/"), "printer_data", "klipper.conf")
-        self.klippy_config = configparser.ConfigParser()
-        #add end
 
         try:
             self.config.read(self.default_config_path)
@@ -75,9 +71,6 @@ class KlipperScreenConfig:
                         logging.info(f"====== Saved Def ======\n{saved_def}\n=======================")
             # This is the final config
             # self.log_config(self.config)
-            #add by Sampson for poweroff resume at 20230817
-            self.klippy_config.read(self.klippy_config_path)
-            #add end
         except KeyError as Kerror:
             msg = f"Error reading config: {self.config_path}\n{Kerror}"
             logging.exception(msg)

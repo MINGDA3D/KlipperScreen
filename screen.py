@@ -10,7 +10,7 @@ import traceback  # noqa
 import locale
 import sys
 import gi
-import time
+import configparser
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, GLib, Pango
@@ -107,6 +107,7 @@ class KlipperScreen(Gtk.Window):
         self.dialogs = []
         self.confirm = None
         self.panels_reinit = []
+        self.auto_check = True
 
         configfile = os.path.normpath(os.path.expanduser(args.configfile))
 
@@ -114,9 +115,6 @@ class KlipperScreen(Gtk.Window):
         self.lang_ltr = set_text_direction(self._config.get_main_config().get("language", None))
         self.env = Environment(extensions=["jinja2.ext.i18n"], autoescape=True)
         self.env.install_gettext_translations(self._config.get_lang())
-        #add by Sampson for poweroff resume at 20230817
-        self.is_poweroff_resume = self._config.klippy_config.get("Variables", "resumeflag", fallback=0)
-        #add end
 		
         self.connect("key-press-event", self._key_press_event)
         self.connect("configure_event", self.update_size)
@@ -161,11 +159,36 @@ class KlipperScreen(Gtk.Window):
 
         self.initial_connection()
 
-        #add by Sampson for auto shutdown after printing finish at 20230817 begin
+        self.setup_init = 0
+        #add by Sampson for read klipper.conf at 20231106
+        self.klippy_config_path = None
+        self.klippy_config = None
+        
+    def load_klipper_config(self):
+        try:
+            variables = self.printer.get_config_section("save_variables")
+            # variables = self.printer.get_config_section("stepper_z")
+            if "filename" in variables:
+                self.klippy_config_path = os.path.expanduser(variables['filename'])
+            if self.klippy_config_path is not None:
+                self.klippy_config = configparser.ConfigParser()
+                self.klippy_config.read(self.klippy_config_path)
+                if not self.klippy_config.has_section("Variables"):
+                    self.klippy_config = None
+        except KeyError as Kerror:
+            msg = f"Error reading config: {self.config_path}\n{Kerror}"
+            logging.exception(msg)
+        except ValueError as Verror:
+            msg = f"Invalid Value in the config:\n{Verror}"
+            logging.exception(msg)
+        except Exception as e:
+            msg = f"Unknown error with the config:\n{e}"
+            logging.exception(msg)
+
         is_auto_shutdown = self._config.get_main_config().get('auto_shutdown_print_finish')
         self.change_auto_shutdown_flag(is_auto_shutdown)
         #add end
-        
+
     def initial_connection(self):
         self.printers = self._config.get_printers()
         state_callbacks = {
@@ -265,7 +288,6 @@ class KlipperScreen(Gtk.Window):
             requested_updates['objects'][f] = ["enabled", "filament_detected"]
         for p in self.printer.get_output_pins():
             requested_updates['objects'][p] = ["value"]
-
         self._ws.klippy.object_subscription(requested_updates)
 
     @staticmethod
@@ -685,105 +707,24 @@ class KlipperScreen(Gtk.Window):
         self.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
 
         # add by Sampson for poweroff resume at 20230816 begin
-        # logging.info(f"resume flag(int): {int(self.is_poweroff_resume)}")
-        # if int(self.is_poweroff_resume) == 1:
-        #     if self._ws.connected:
-        #     #if True:
-        #         script = {"script": "POWEROFF_RESUME"}
-        #         self._confirm_send_action(None,
-        #                                       _("Power loss recovery, is resume print?"),
-        #                                       "printer.gcode.script", script)
-        #         self.is_poweroff_resume = 0
-        #add end
-        #add by Sampson for self-test at 20230911
-        self.gtk.creat_self_test_dialog()
+        self.load_klipper_config()
+        if self.klippy_config is not None and self.setup_init == 0:
+            self.setup_init = self.klippy_config.getint("Variables", "setup_init", fallback=0)
 
-        if True:
-            for i in range(len(self.gtk.test_items)):
-                self.gtk.change_state(i, 1)
+        if self.setup_init == 1:
+            self.show_panel("setup_wizard", "Choose a language", remove_all=True)
+        elif self.setup_init == 2:
+            self.show_panel("select_timezone", "Choose a timezone", remove_all=True)
+        elif self.setup_init == 3:
+            self.show_panel("zprobe", "Calibrate Probe", remove_all=True)
+        elif self.setup_init == 4:
+            self.show_panel("zcalibrate_mesh", "Calibrate Zmesh", remove_all=True)
+        elif self.setup_init == 5:
+            self.show_panel("select_wifi", "Select a WiFi", remove_all=True)
+        elif self.auto_check:
+            self.auto_check = False
+            self.show_panel("self_check", "Self-check", remove_all=True)
 
-        # "Nozzle Heating", "Bed Heating", "Hotend Cooling Fan", "Part Cooling Fan", "Material Detect"
-        tool_target = 60
-        bed_target = 45
-        fan_speed = 50
-        fans = self.printer.get_fans()
-        time_out = 10000
-        
-        #Nozzle Heating
-        for extruder in self.printer.get_tools():
-            self._ws.klippy.set_tool_temp(self._printer.get_tool_number(extruder), tool_target)
-        #Bed Headting
-        for dev in self.printer.get_heaters():
-            if dev == "heater_bed":        
-                self._ws.klippy.set_bed_temp(bed_target)
-        for fan in fans:
-            name = fan.split()[1]
-            if name.startswith("Hotend"):
-                #Hotend Cooling Fan
-                self._ws.klippy.gcode_script(f"SET_FAN_SPEED FAN={name} SPEED={float(fan_speed) / 100}")
-                self._ws.klippy.gcode_script(f"SET_FAN_SPEED FAN={name} SPEED={float(fan_speed) / 100}")
-        #Nozzle Cooling Fan
-        for fan in fans:
-            if fan == "fan":
-                self._ws.klippy.gcode_script(f"M106 S{fan_speed * 2.55:.0f}")
-        steps = [x for x in range(len(self.gtk.test_items))]
-        
-        while True:
-            for step in steps:
-                is_ok = True
-                if step == 0:
-                    for extruder in self.printer.get_tools():
-                        temp = self.printer.get_dev_stat(extruder, "temperature")
-                        if temp < tool_target:
-                            is_ok = False
-                            break
-                elif step == 1:
-                    for dev in self.printer.get_heaters():
-                        if dev == "heater_bed":
-                            temp = self.printer.get_dev_stat("heater_bed", "temperature")
-                            if temp < bed_target:
-                                is_ok = False
-                elif step == 2:
-                    for fan in fans:
-                        if fan == "fan":
-                            speed = self.printer.get_fan_speed("fan")
-                            if speed < fan_speed * 2.55:
-                                is_ok = False
-                elif step == 3:
-                    for fan in fans:
-                        speed = self.printer.get_fan_speed(fan)
-                        if (speed < 0.5):
-                            is_ok = False
-                elif step == 4:
-                    filament_sensors = self.printer.get_filament_sensors()
-                    for fs in filament_sensors:
-                        if self.printer.get_stat(fs, "enabled") :
-                            if not self.printer.get_stat(fs, "filament_detected"):
-                                is_ok = False
-                        else:
-                            is_ok = False
-                if is_ok:
-                    self.gtk.change_state(step, 0)
-                    steps.remove(step)
-                    logging.debug("444444444444")                
-            if len(steps) == 0:
-                logging.debug("555555555")                
-                break
-
-            if(time_out < 0):
-                for step in steps:
-                    self.gtk.change_state(step, -1)
-                logging.debug("666666666")                
-                break
-            time_out = time_out - 1
-        
-        logging.debug("33333333333333")
-
-        # self.gtk.enable_button()
-        # self.close_screensaver()
-        # for dialog in self.dialogs:
-        #     self.gtk.remove_dialog(dialog)
-        #self.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
         #add end
 
     def state_startup(self):
@@ -814,6 +755,14 @@ class KlipperScreen(Gtk.Window):
         self._config.save_user_config_options()
         self.reload_panels()
 
+    def change_language_without_reload(self, widget, lang):
+        self._config.install_language(lang)
+        self.lang_ltr = set_text_direction(lang)
+        self.env.install_gettext_translations(self._config.get_lang())
+        self._config._create_configurable_options(self)
+        self._config.set('main', 'language', lang)
+        self._config.save_user_config_options()
+
     def reload_panels(self, *args):
         if "printer_select" in self._cur_panels:
             self.show_printer_select()
@@ -839,7 +788,8 @@ class KlipperScreen(Gtk.Window):
         elif action == "notify_status_update" and self.printer.state != "shutdown":
             self.printer.process_update(data)
             if 'manual_probe' in data and data['manual_probe']['is_active'] and 'zcalibrate' not in self._cur_panels:
-                self.show_panel("zcalibrate", _('Z Calibrate'))
+                if self.setup_init == 0:
+                    self.show_panel("zcalibrate", _('Z Calibrate'))
         elif action == "notify_filelist_changed":
             if self.files is not None:
                 self.files.process_update(data)
@@ -1187,3 +1137,4 @@ if __name__ == "__main__":
     except Exception as ex:
         logging.exception(f"Fatal error in main loop:\n{ex}\n\n{traceback.format_exc()}")
         sys.exit(1)
+

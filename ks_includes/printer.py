@@ -97,7 +97,7 @@ class Printer:
         logging.info(f"# Output pins: {self.output_pin_count}")
 
     def process_update(self, data):
-        logging.info(f"22222222222222222222")
+        # logging.info(f"22222222222222222222")
         if self.data is None:
             return
         for x in (self.get_temp_devices() + self.get_filament_sensors()):

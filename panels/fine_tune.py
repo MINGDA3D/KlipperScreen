@@ -79,6 +79,18 @@ class Panel(ScreenPanel):
         self.labels['z-'] = self._gtk.Button("z-closer", "Z-", "color1")
         self.labels['zoffset'] = self._gtk.Button("refresh", '  0.00' + _("mm"),
                                                   "color1", self.bts, Gtk.PositionType.LEFT, 1)
+        
+        # add by Sampson for set extruder1 offset at 20230926 begin
+        self.labels['y+'] = self._gtk.Button("y-farther", "Y+", "color1")
+        self.labels['y-'] = self._gtk.Button("y-closer", "Y-", "color1")
+        self.labels['yoffset'] = self._gtk.Button("refresh", '  0.00' + _("mm"),
+                                                  "color1", self.bts, Gtk.PositionType.LEFT, 1)
+        
+        self.labels['x+'] = self._gtk.Button("x-farther", "X+", "color1")
+        self.labels['x-'] = self._gtk.Button("x-closer", "X-", "color1")
+        self.labels['xoffset'] = self._gtk.Button("refresh", '  0.00' + _("mm"),
+                                                  "color1", self.bts, Gtk.PositionType.LEFT, 1)
+        # end
         self.labels['speed+'] = self._gtk.Button("speed+", _("Speed +"), "color3")
         self.labels['speed-'] = self._gtk.Button("speed-", _("Speed -"), "color3")
         self.labels['speedfactor'] = self._gtk.Button("refresh", "  100%",
@@ -105,15 +117,23 @@ class Panel(ScreenPanel):
             grid.attach(self.labels['zoffset'], 0, 0, 1, 1)
             grid.attach(self.labels['z+'], 0, 1, 1, 1)
             grid.attach(self.labels['z-'], 0, 2, 1, 1)
-            grid.attach(zgrid, 0, 3, 1, 1)
+            grid.attach(zgrid, 0, 3, 2, 1)
             grid.attach(self.labels['speedfactor'], 1, 0, 1, 1)
             grid.attach(self.labels['speed+'], 1, 1, 1, 1)
             grid.attach(self.labels['speed-'], 1, 2, 1, 1)
-            grid.attach(spdgrid, 1, 3, 1, 1)
+            grid.attach(spdgrid, 2, 3, 2, 1)
             grid.attach(self.labels['extrudefactor'], 2, 0, 1, 1)
             grid.attach(self.labels['extrude+'], 2, 1, 1, 1)
             grid.attach(self.labels['extrude-'], 2, 2, 1, 1)
-            grid.attach(extgrid, 2, 3, 1, 1)
+            grid.attach(extgrid, 4, 3, 1, 1)
+
+            grid.attach(self.labels['xoffset'], 3, 0, 1, 1)
+            grid.attach(self.labels['x+'], 3, 1, 1, 1)
+            grid.attach(self.labels['x-'], 3, 2, 1, 1)
+
+            grid.attach(self.labels['yoffset'], 4, 0, 1, 1)
+            grid.attach(self.labels['y+'], 4, 1, 1, 1)
+            grid.attach(self.labels['y-'], 4, 2, 1, 1)
 
         self.labels['z+'].connect("clicked", self.change_babystepping, "+")
         self.labels['zoffset'].connect("clicked", self.change_babystepping, "reset")
