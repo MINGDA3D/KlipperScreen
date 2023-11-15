@@ -98,11 +98,11 @@ class Panel(ScreenPanel):
                     self._screen._ws.klippy.gcode_script(f"M106 S{self.fan_speed * 2.55:.0f}")
 
         #Hotend Cooling Fan
-        for fan in self.fans:
-            if 'hotend' in fan.lower():
-                speed = self._printer.get_fan_speed(fan) * 100
-                if speed < self.fan_speed:
-                    self._screen._ws.klippy.gcode_script(f"SET_FAN_SPEED FAN={fan} SPEED={float(speed) / 100}")
+        # for fan in self.fans:
+        #     if 'hotend' in fan.lower():
+        #         speed = self._printer.get_fan_speed(fan) * 100
+        #         if speed < self.fan_speed:
+        #             self._screen._ws.klippy.gcode_script(f"SET_FAN_SPEED FAN={fan} SPEED={float(speed) / 100}")
 
         self.content.add(grid)        
 

@@ -9,7 +9,7 @@ from ks_includes.screen_panel import ScreenPanel
 
 
 class Panel(ScreenPanel):
-    z_deltas = ["0.01", "0.05"]
+    z_deltas = ["0.02", "0.1"]
     z_delta = z_deltas[-1]
     speed_deltas = ['5', '25']
     s_delta = speed_deltas[-1]
@@ -21,7 +21,7 @@ class Panel(ScreenPanel):
     def __init__(self, screen, title):
         super().__init__(screen, title)
         if self.ks_printer_cfg is not None:
-            bs = self.ks_printer_cfg.get("z_babystep_values", "0.01, 0.05")
+            bs = self.ks_printer_cfg.get("z_babystep_values", "0.02, 0.1")
             if re.match(r'^[0-9,\.\s]+$', bs):
                 bs = [str(i.strip()) for i in bs.split(',')]
                 if 1 < len(bs) < 3:
@@ -79,25 +79,13 @@ class Panel(ScreenPanel):
         self.labels['z-'] = self._gtk.Button("z-closer", "Z-", "color1")
         self.labels['zoffset'] = self._gtk.Button("refresh", '  0.00' + _("mm"),
                                                   "color1", self.bts, Gtk.PositionType.LEFT, 1)
-        
-        # add by Sampson for set extruder1 offset at 20230926 begin
-        self.labels['y+'] = self._gtk.Button("y-farther", "Y+", "color1")
-        self.labels['y-'] = self._gtk.Button("y-closer", "Y-", "color1")
-        self.labels['yoffset'] = self._gtk.Button("refresh", '  0.00' + _("mm"),
-                                                  "color1", self.bts, Gtk.PositionType.LEFT, 1)
-        
-        self.labels['x+'] = self._gtk.Button("x-farther", "X+", "color1")
-        self.labels['x-'] = self._gtk.Button("x-closer", "X-", "color1")
-        self.labels['xoffset'] = self._gtk.Button("refresh", '  0.00' + _("mm"),
-                                                  "color1", self.bts, Gtk.PositionType.LEFT, 1)
-        # end
         self.labels['speed+'] = self._gtk.Button("speed+", _("Speed +"), "color3")
         self.labels['speed-'] = self._gtk.Button("speed-", _("Speed -"), "color3")
         self.labels['speedfactor'] = self._gtk.Button("refresh", "  100%",
                                                       "color3", self.bts, Gtk.PositionType.LEFT, 1)
 
-        self.labels['extrude+'] = self._gtk.Button("flow+", _("Extrusion +"), "color4")
-        self.labels['extrude-'] = self._gtk.Button("flow-", _("Extrusion -"), "color4")
+        self.labels['extrude+'] = self._gtk.Button("flow+", _("Flow +"), "color4")
+        self.labels['extrude-'] = self._gtk.Button("flow-", _("Flow -"), "color4")
         self.labels['extrudefactor'] = self._gtk.Button("refresh", "  100%",
                                                         "color4", self.bts, Gtk.PositionType.LEFT, 1)
         if self._screen.vertical_mode:
@@ -117,23 +105,15 @@ class Panel(ScreenPanel):
             grid.attach(self.labels['zoffset'], 0, 0, 1, 1)
             grid.attach(self.labels['z+'], 0, 1, 1, 1)
             grid.attach(self.labels['z-'], 0, 2, 1, 1)
-            grid.attach(zgrid, 0, 3, 2, 1)
+            grid.attach(zgrid, 0, 3, 1, 1)
             grid.attach(self.labels['speedfactor'], 1, 0, 1, 1)
             grid.attach(self.labels['speed+'], 1, 1, 1, 1)
             grid.attach(self.labels['speed-'], 1, 2, 1, 1)
-            grid.attach(spdgrid, 2, 3, 2, 1)
+            grid.attach(spdgrid, 1, 3, 1, 1)
             grid.attach(self.labels['extrudefactor'], 2, 0, 1, 1)
             grid.attach(self.labels['extrude+'], 2, 1, 1, 1)
             grid.attach(self.labels['extrude-'], 2, 2, 1, 1)
-            grid.attach(extgrid, 4, 3, 1, 1)
-
-            grid.attach(self.labels['xoffset'], 3, 0, 1, 1)
-            grid.attach(self.labels['x+'], 3, 1, 1, 1)
-            grid.attach(self.labels['x-'], 3, 2, 1, 1)
-
-            grid.attach(self.labels['yoffset'], 4, 0, 1, 1)
-            grid.attach(self.labels['y+'], 4, 1, 1, 1)
-            grid.attach(self.labels['y-'], 4, 2, 1, 1)
+            grid.attach(extgrid, 2, 3, 1, 1)
 
         self.labels['z+'].connect("clicked", self.change_babystepping, "+")
         self.labels['zoffset'].connect("clicked", self.change_babystepping, "reset")
@@ -194,7 +174,7 @@ class Panel(ScreenPanel):
         elif direction == "reset":
             self.speed = 100
 
-        self.speed = max(self.speed, 1)
+        self.speed = max(self.speed, 5)
         self.labels['speedfactor'].set_label(f"  {self.speed:3}%")
         self._screen._send_action(widget, "printer.gcode.script", {"script": KlippyGcodes.set_speed_rate(self.speed)})
 

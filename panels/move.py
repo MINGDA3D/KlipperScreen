@@ -51,7 +51,7 @@ class Panel(ScreenPanel):
                 grid.attach(self.buttons['x-'], 2, 1, 1, 1)
                 grid.attach(self.buttons['z+'], 0, 2, 1, 1)
                 grid.attach(self.buttons['z-'], 2, 2, 1, 1)
-            grid.attach(adjust, 1, 2, 1, 1)
+            # grid.attach(adjust, 1, 2, 1, 1)
             grid.attach(self.buttons['y+'], 1, 0, 1, 1)
             grid.attach(self.buttons['y-'], 1, 1, 1, 1)
 

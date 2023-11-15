@@ -438,6 +438,7 @@ class Panel(ScreenPanel):
 
     def cancel(self, widget):
         buttons = [
+            {"name": _("Force Cancel"), "response": Gtk.ResponseType.YES},
             {"name": _("Cancel Print"), "response": Gtk.ResponseType.OK},
             {"name": _("Go Back"), "response": Gtk.ResponseType.CANCEL}
         ]
@@ -464,7 +465,11 @@ class Panel(ScreenPanel):
         logging.debug("Canceling print")
         self.set_state("cancelling")
         self.disable_button("pause", "resume", "cancel")
-        self._screen._ws.klippy.print_cancel()
+        if response_id == Gtk.ResponseType.OK:
+            self._screen._ws.klippy.print_cancel()
+        elif response_id == Gtk.ResponseType.YES:
+            self._screen._ws.klippy.emergency_stop()
+            self._screen._ws.klippy.gcode_script("FIRMWARE_RESTART")
 
     def close_panel(self, widget=None):
         if self.can_close:
@@ -721,15 +726,15 @@ class Panel(ScreenPanel):
         self.buttons['button_grid'].remove_row(0)
         self.buttons['button_grid'].insert_row(0)
         if self.state == "printing":
-            self.buttons['button_grid'].attach(self.buttons['pause'], 0, 0, 1, 1)
-            self.buttons['button_grid'].attach(self.buttons['cancel'], 1, 0, 1, 1)
+            self.buttons['button_grid'].attach(self.buttons['cancel'], 0, 0, 1, 1)
+            self.buttons['button_grid'].attach(self.buttons['pause'], 1, 0, 1, 1)
             self.buttons['button_grid'].attach(self.buttons['fine_tune'], 2, 0, 1, 1)
             self.buttons['button_grid'].attach(self.buttons['control'], 3, 0, 1, 1)
             self.enable_button("pause", "cancel")
             self.can_close = False
         elif self.state == "paused":
-            self.buttons['button_grid'].attach(self.buttons['resume'], 0, 0, 1, 1)
-            self.buttons['button_grid'].attach(self.buttons['cancel'], 1, 0, 1, 1)
+            self.buttons['button_grid'].attach(self.buttons['cancel'], 0, 0, 1, 1)
+            self.buttons['button_grid'].attach(self.buttons['resume'], 1, 0, 1, 1)
             self.buttons['button_grid'].attach(self.buttons['fine_tune'], 2, 0, 1, 1)
             self.buttons['button_grid'].attach(self.buttons['control'], 3, 0, 1, 1)
             self.enable_button("resume", "cancel")
