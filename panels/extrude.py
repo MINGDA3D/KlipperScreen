@@ -20,12 +20,12 @@ class Panel(ScreenPanel):
         self.speeds = ['2', '5']
         self.distances = ['10', '25', '50', '100']
         if self.ks_printer_cfg is not None:
-            dis = self.ks_printer_cfg.get("extrude_distances", '5, 10, 15, 25')
+            dis = self.ks_printer_cfg.get("extrude_distances", '10, 25, 50, 100')
             if re.match(r'^[0-9,\s]+$', dis):
                 dis = [str(i.strip()) for i in dis.split(',')]
                 if 1 < len(dis) < 5:
                     self.distances = dis
-            vel = self.ks_printer_cfg.get("extrude_speeds", '1, 2, 5, 25')
+            vel = self.ks_printer_cfg.get("extrude_speeds", '2, 5')
             if re.match(r'^[0-9,\s]+$', vel):
                 vel = [str(i.strip()) for i in vel.split(',')]
                 if 1 < len(vel) < 5:
@@ -38,7 +38,7 @@ class Panel(ScreenPanel):
             'load': self._gtk.Button("arrow-down", _("Load"), "color3"),
             'unload': self._gtk.Button("arrow-up", _("Unload"), "color2"),
             'retract': self._gtk.Button("retract", _("Unload"), "color1"),
-            'temperature': self._gtk.Button("heat-up", _("Temperature"), "color4"),
+            'temperature': self._gtk.Button("heat-up", _("Preheat"), "color4"),
             'spoolman': self._gtk.Button("spoolman", "Spoolman", "color3"),
         }
         self.buttons['extrude'].connect("clicked", self.extrude, "+")
@@ -240,7 +240,11 @@ class Panel(ScreenPanel):
 
     def extrude(self, widget, direction):
         self._screen._ws.klippy.gcode_script(KlippyGcodes.EXTRUDE_REL)
-        self._screen._send_action(widget, "printer.gcode.script",
+        if direction == "-":
+            self._screen._send_action(widget, "printer.gcode.script",
+                                  {"script": f"G1 E{direction}{self.distance} F120"})
+        else:
+            self._screen._send_action(widget, "printer.gcode.script",
                                   {"script": f"G1 E{direction}{self.distance} F{self.speed * 60}"})
 
     def load_unload(self, widget, direction):

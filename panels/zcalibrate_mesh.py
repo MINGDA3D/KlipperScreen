@@ -29,12 +29,12 @@ class Panel(ScreenPanel):
         self.buttons['calib'].connect("clicked", self.calibrate_mesh)
         self.buttons['calib'].set_hexpand(True)
 
-        topbar = Gtk.Box(spacing=5)
-        topbar.set_hexpand(True)
-        topbar.set_vexpand(False)
+        # topbar = Gtk.Box(spacing=5)
+        # topbar.set_hexpand(True)
+        # topbar.set_vexpand(False)
         # topbar.add(self.buttons['add'])
         # topbar.add(self.buttons['clear'])
-        topbar.add(self.buttons['calib'])
+        # topbar.add(self.buttons['calib'])
 
         # Create a grid for all profiles
         self.labels['profiles'] = Gtk.Grid()
@@ -51,14 +51,15 @@ class Panel(ScreenPanel):
         self.labels['back'].connect("clicked", self.on_back_click)
         main_grid.attach(self.labels['back'], 0, 0, 1, 1)
 
+        main_grid.attach(self.buttons['calib'], 2, 0, 1, 1)
         self.labels['next'] = self._gtk.Button("arrow-right", None, "color1", .66)
         self.labels['next'].connect("clicked", self.on_next_click)
-        self.labels['next'].set_sensitive(False)
+        # self.labels['next'].set_sensitive(False)
         main_grid.attach(self.labels['next'], 4, 0, 1, 1)        
 
         grid = self._gtk.HomogeneousGrid()
         grid.set_row_homogeneous(False)
-        grid.attach(topbar, 0, 0, 2, 1)
+        # grid.attach(topbar, 0, 0, 2, 1)
         self.labels['map'] = BedMap(self._gtk.font_size, self.active_mesh)
         if self._screen.vertical_mode:
             grid.attach(self.labels['map'], 0, 2, 2, 1)
@@ -98,7 +99,7 @@ class Panel(ScreenPanel):
         self.active_mesh = profile
         self.update_graph(profile=profile)
         # self.buttons['clear'].set_sensitive(True)
-        self.labels['next'].set_sensitive(True)
+        # self.labels['next'].set_sensitive(True)
 
     def retrieve_bm(self, profile):
         if profile is None:
@@ -265,7 +266,8 @@ class Panel(ScreenPanel):
 
     def calibrate_mesh(self, widget):
         widget.set_sensitive(False)
-        self._screen.show_popup_message(_("Calibrating"), level=1)
+        self._screen.show_popup_message(_("Please wait until the bed is heated before calibrating."), level=1)
+        self._screen._ws.klippy.gcode_script("M190 S65")
         if self._printer.get_stat("toolhead", "homed_axes") != "xyz":
             self._screen._ws.klippy.gcode_script("G28")
 
@@ -289,17 +291,9 @@ class Panel(ScreenPanel):
         self.remove_profile(profile)
 
     def on_back_click(self, widget=None):
-        self._screen.show_panel("zprobe", "Calibrate Probe", remove_all=True)        
+        self._screen.show_panel("select_timezone", "Choose Timezone", remove_all=True)        
 
     def on_next_click(self, widget=None):
         self._screen.setup_init = 5
-        self.save()
-        self._screen.show_panel("select_wifi", "Select a WiFi", remove_all=True)
-
-    def save(self):
-        try:
-            self._screen.klippy_config.set("Variables", "setup_init", f"{self._screen.setup_init}")
-            with open(self._screen.klippy_config_path, 'w') as file:
-                self._screen.klippy_config.write(file)
-        except Exception as e:
-            logging.error(f"Error writing configuration file in {self._screen.klippy_config_path}:\n{e}") 
+        self._screen.save_init_step()
+        self._screen.show_panel("select_wifi", "Select WiFi", remove_all=True)

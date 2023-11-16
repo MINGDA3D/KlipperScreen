@@ -94,6 +94,7 @@ class KlipperScreen(Gtk.Window):
     popup_timeout = None
     wayland = False
     windowed = False
+    auto_check = True
 
     def __init__(self, args):
         try:
@@ -107,7 +108,6 @@ class KlipperScreen(Gtk.Window):
         self.dialogs = []
         self.confirm = None
         self.panels_reinit = []
-        self.auto_check = True
 
         configfile = os.path.normpath(os.path.expanduser(args.configfile))
 
@@ -719,21 +719,21 @@ class KlipperScreen(Gtk.Window):
         # add by Sampson for poweroff resume at 20230816 begin
         self.load_klipper_config()
         if self.klippy_config is not None and self.setup_init == 0:
-            self.setup_init = self.klippy_config.getint("Variables", "setup_init", fallback=0)
+            self.setup_init = self.klippy_config.getint("Variables", "setup_step", fallback=0)
 
         if self.setup_init == 1:
-            self.show_panel("setup_wizard", "Choose a language", remove_all=True)
+            self.show_panel("setup_wizard", "Choose Language", remove_all=True)
         elif self.setup_init == 2:
-            self.show_panel("select_timezone", "Choose a timezone", remove_all=True)
+            self.show_panel("select_timezone", "Choose Timezone", remove_all=True)
+        # elif self.setup_init == 3:
+            # self.show_panel("zprobe", "Calibrate Probe", remove_all=True)
         elif self.setup_init == 3:
-            self.show_panel("zprobe", "Calibrate Probe", remove_all=True)
+            self.show_panel("zcalibrate_mesh", "Leveling", remove_all=True)
         elif self.setup_init == 4:
-            self.show_panel("zcalibrate_mesh", "Calibrate Zmesh", remove_all=True)
-        elif self.setup_init == 5:
-            self.show_panel("select_wifi", "Select a WiFi", remove_all=True)
+            self.show_panel("select_wifi", "Select WiFi", remove_all=True)
         elif self.auto_check:
-            self.auto_check = False
             self.show_panel("self_check", "Self-check", remove_all=True)
+        self.auto_check = False
 
         #add end
 
@@ -1114,8 +1114,16 @@ class KlipperScreen(Gtk.Window):
         scripe = {"script": "AUTO_SHUTDOWN_OFF"}
         if value :
             scripe = {"script": "AUTO_SHUTDOWN"}
-        self._send_action(None, "printer.gcode.script", scripe)
+        # self._send_action(None, "printer.gcode.script", scripe)
     #add end
+
+    def save_init_step(self):
+        try:
+            self.klippy_config["Variables"]["setup_step"] = str(self.setup_init)
+            with open(self.klippy_config_path, 'w') as file:
+                self.klippy_config.write(file)
+        except Exception as e:
+            logging.error(f"Error writing configuration file in {self.klippy_config_path}:\n{e}")        
 
 def main():
     minimum = (3, 7)

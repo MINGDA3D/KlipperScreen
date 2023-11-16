@@ -96,8 +96,8 @@ class Panel(ScreenPanel):
         bottomgrid.attach(self.labels['pos_y'], 1, 0, 1, 1)
         bottomgrid.attach(self.labels['pos_z'], 2, 0, 1, 1)
         bottomgrid.attach(self.labels['move_dist'], 0, 1, 3, 1)
-        if not self._screen.vertical_mode:
-            bottomgrid.attach(adjust, 3, 0, 1, 2)
+        # if not self._screen.vertical_mode:
+        #     bottomgrid.attach(adjust, 3, 0, 1, 2)
 
         self.labels['move_menu'] = self._gtk.HomogeneousGrid()
         self.labels['move_menu'].attach(grid, 0, 0, 1, 3)

@@ -87,7 +87,8 @@ class Panel(ScreenPanel):
         for dev in self._printer.get_heaters():
             if dev == "heater_bed":
                 temp = self._printer.get_dev_stat("heater_bed", "temperature")
-                if temp < self.bed_target:        
+                if temp < self.bed_target:
+                    self.bed_target = temp + 5        
                     self._screen._ws.klippy.set_bed_temp(self.bed_target)  
 
         #Nozzle Cooling Fan

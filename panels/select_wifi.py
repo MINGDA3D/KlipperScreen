@@ -60,9 +60,9 @@ class Panel(ScreenPanel):
         grid.attach(self.labels['back'], 0, 0, 1, 1)
 
 
-        self.labels['tip'] = Gtk.Label()
-        self.labels['tip'].set_text("Select a WiFi")
-        grid.attach(self.labels['tip'], 1, 0, 3, 1)
+        # self.labels['tip'] = Gtk.Label()
+        # self.labels['tip'].set_text("Select a WiFi")
+        # grid.attach(self.labels['tip'], 1, 0, 3, 1)
 
         self.labels['next'] = self._gtk.Button("complete", None, "color1", .66)
         self.labels['next'].connect("clicked", self.on_next_click)
@@ -72,7 +72,7 @@ class Panel(ScreenPanel):
         self.labels['networklist'] = Gtk.Grid()
 
         if self.wifi is not None and self.wifi.initialized:
-            grid.attach(scroll, 0, 1, 4, 5)
+            grid.attach(scroll, 0, 1, 5, 5)
             GLib.idle_add(self.load_networks)
             scroll.add(self.labels['networklist'])
 
@@ -90,7 +90,7 @@ class Panel(ScreenPanel):
 
         reload_networks = self._gtk.Button("refresh", None, "color1", .66)
         reload_networks.connect("clicked", self.reload_networks)
-        grid.attach(reload_networks, 4, 1, 1, 5)
+        grid.attach(reload_networks, 2, 0, 1, 1)
 
         self.content.add(grid)
         self.labels['main_box'] = grid
@@ -441,26 +441,9 @@ class Panel(ScreenPanel):
             self.update_timeout = None
 
     def on_back_click(self, widget=None):
-        self._screen.show_panel("select_timezone", "Choose a timezone", remove_all=True)
+        self._screen.show_panel("zcalibrate_mesh", "Leveling", remove_all=True)
 
     def on_next_click(self, widget=None):
         self._screen.setup_init = 0
-        self.save()
+        self._screen.save_init_step()
         self._screen.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
-        # try:
-        #     self._screen.klippy_config.set("Variables", "e1_zoffset", f"{self.z_offset:.2f}")
-        #     # logging.info(f"z offset change to z: {self.z_offset:.2f}")
-        #     with open(self._screen.klippy_config_path, 'w') as file:
-        #         self._screen.klippy_config.write(file)
-        #         self._screen._ws.klippy.gcode_script('SAVE_CONFIG')
-        # except Exception as e:
-        #     logging.error(f"Error writing configuration file in {self._screen.klippy_config_path}:\n{e}")             
-    # def on_complete_click(self, widget=None):
-    #     self._screen.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
-    def save(self):
-        try:
-            self._screen.klippy_config.set("Variables", "setup_init", f"{self._screen.setup_init}")
-            with open(self._screen.klippy_config_path, 'w') as file:
-                self._screen.klippy_config.write(file)
-        except Exception as e:
-            logging.error(f"Error writing configuration file in {self._screen.klippy_config_path}:\n{e}") 

@@ -31,7 +31,7 @@ class Panel(ScreenPanel):
         self.labels['next'] = self._gtk.Button("arrow-right", None, "color1", .66)
         self.labels['next'].connect("clicked", self.on_next_click)
         grid.attach(self.labels['next'], 4, 0, 1, 1)
-        self.labels['next'].set_sensitive(False)
+        # self.labels['next'].set_sensitive(False)
         
         self.labels['lang_menu'] = self._gtk.ScrolledWindow()
         self.labels['lang'] = Gtk.Grid()
@@ -135,24 +135,13 @@ class Panel(ScreenPanel):
 
     def on_next_click(self, widget=None):
         self._screen.setup_init = 2
-        self.save()
-        self._screen.show_panel("select_timezone", "Choose a timezone", remove_all=True)
-        
-    # def on_next_click(self, widget=None):
-    #     self._screen.show_panel("select_timezone", "Choose a timezone", remove_all=True)
+        self._screen.save_init_step()
+        self._screen.show_panel("select_timezone", "Choose Timezone", remove_all=True)
         
     def change_language(self, widget, lang_name, lang_code):
         self.labels['tip'].set_markup(f"Current language: {lang_name}")
         self._screen.change_language_without_reload(widget, lang_code)
-        self.labels['next'].set_sensitive(True)
+        # self.labels['next'].set_sensitive(True)
     
     def on_skip_click(self, widget):
-        self._screen.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
-
-    def save(self):
-        try:
-            self._screen.klippy_config.set("Variables", "setup_init", f"{self._screen.setup_init}")
-            with open(self._screen.klippy_config_path, 'w') as file:
-                self._screen.klippy_config.write(file)
-        except Exception as e:
-            logging.error(f"Error writing configuration file in {self._screen.klippy_config_path}:\n{e}")        
+        self._screen.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))       

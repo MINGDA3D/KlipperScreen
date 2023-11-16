@@ -38,7 +38,7 @@ class Panel(ScreenPanel):
 
         self.labels['next'] = self._gtk.Button("arrow-right", None, "color1", .66)
         self.labels['next'].connect("clicked", self.on_next_click)
-        self.labels['next'].set_sensitive(False)
+        # self.labels['next'].set_sensitive(False)
         grid.attach(self.labels['next'], 4, 0, 1, 1)
 
         timezone_dir = "/usr/share/zoneinfo"
@@ -76,12 +76,12 @@ class Panel(ScreenPanel):
 
 
     def on_back_click(self, widget=None):
-        self._screen.show_panel("setup_wizard", "Choose a language", remove_all=True)
+        self._screen.show_panel("setup_wizard", "Choose Language", remove_all=True)
 
     def on_next_click(self, widget=None):
         self._screen.setup_init = 3
-        self.save()
-        self._screen.show_panel("zprobe", "Calibrate Probe", remove_all=True)        
+        self._screen.save_init_step()
+        self._screen.show_panel("zcalibrate_mesh", "Leveling", remove_all=True)        
 
     def change_timezone(self, widget, new_timezone):
         # Command to change the system timezone
@@ -91,7 +91,7 @@ class Panel(ScreenPanel):
         try:
             subprocess.run(command, shell=True, check=True)
             self.labels['tip'].set_markup(f"Current timezone: {new_timezone}")
-            self.labels['next'].set_sensitive(True)
+            # self.labels['next'].set_sensitive(True)
             logging.info(f"System timezone set to {new_timezone}")
         except subprocess.CalledProcessError as e:
             logging.error(f"Error: {e}")
@@ -154,11 +154,4 @@ class Panel(ScreenPanel):
                 "type": "lang",
             }
             self.add_option("lang", self.langs, lang, self.langs[lang])
-
-    def save(self):
-        try:
-            self._screen.klippy_config.set("Variables", "setup_init", f"{self._screen.setup_init}")
-            with open(self._screen.klippy_config_path, 'w') as file:
-                self._screen.klippy_config.write(file)
-        except Exception as e:
-            logging.error(f"Error writing configuration file in {self._screen.klippy_config_path}:\n{e}")         
+        

@@ -25,7 +25,7 @@ class Panel(ScreenPanel):
         scroll.add(vbox)
         buttons = [
             {"name": _("Reboot"), "response": Gtk.ResponseType.APPLY},
-            {"name": _("Shutdown"), "response": Gtk.ResponseType.OK},
+            {"name": _("Poweroff"), "response": Gtk.ResponseType.OK},
             {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL}
         ]
 
