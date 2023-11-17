@@ -47,7 +47,7 @@ class Panel(ScreenPanel):
         grid = self._gtk.HomogeneousGrid()
         grid.set_row_homogeneous(False)
         self.labels['warning'] = Gtk.Label()
-        self.labels['warning'].set_markup(f'<span foreground="red">Do not touch the printer during power-on self-check.</span>')
+        self.labels['warning'].set_markup(f'<span foreground="red">Do not touch the printer during self-check.</span>')
         grid.attach(self.labels['warning'], 0, 0, 4, 1)
         for i, text in enumerate(self.test_items):
             self.labels[text] = 0
@@ -76,7 +76,7 @@ class Panel(ScreenPanel):
         self.fan_speed = 5
         self.fans = self._printer.get_fans()
         self.start_time = time.time()
-        self.time_out = 100     #seconds
+        self.time_out = 60     #seconds
         #Nozzle Heating
         for extruder in self._printer.get_tools():
             temp = self._printer.get_dev_stat(extruder, "temperature")
@@ -97,13 +97,6 @@ class Panel(ScreenPanel):
                 speed = self._printer.get_fan_speed(fan) * 100
                 if speed < self.fan_speed:
                     self._screen._ws.klippy.gcode_script(f"M106 S{self.fan_speed * 2.55:.0f}")
-
-        #Hotend Cooling Fan
-        # for fan in self.fans:
-        #     if 'hotend' in fan.lower():
-        #         speed = self._printer.get_fan_speed(fan) * 100
-        #         if speed < self.fan_speed:
-        #             self._screen._ws.klippy.gcode_script(f"SET_FAN_SPEED FAN={fan} SPEED={float(speed) / 100}")
 
         self.content.add(grid)        
 
@@ -126,81 +119,78 @@ class Panel(ScreenPanel):
 
     #add by Sampson for self-test at 20230911
     def self_test(self):        
-        if self.is_check:
-            for step in self.steps:
+        for step in self.steps:
+            is_ok = False
+            if step == 0:
+                for extruder in self._printer.get_tools():
+                    is_ok = True
+                    temp = self._printer.get_dev_stat(extruder, "temperature")
+                    if temp < self.tool_target:
+                        is_ok = False
+                        break
+            elif step == 1:
+                for dev in self._printer.get_heaters():
+                    is_ok = True
+                    if dev == "heater_bed":
+                        temp = self._printer.get_dev_stat("heater_bed", "temperature")
+                        if temp < self.bed_target:
+                            is_ok = False
+                            break
+            elif step == 2:
+                for fan in self.fans:
+                    is_ok = True
+                    if fan == "fan":
+                        speed = self._printer.get_fan_speed("fan") * 100
+                        if speed < self.fan_speed:
+                            is_ok = False
+                            break
+            elif step == 3:
+                for fan in self.fans:
+                    is_ok = True
+                    if 'hotend' in fan.lower():
+                        speed = self._printer.get_fan_speed(fan) * 100                        
+                        if speed < self.fan_speed:
+                            is_ok = False
+                            break
+            elif step == 4:
+                filament_sensors = self._printer.get_filament_sensors()
+                for fs in filament_sensors:
+                    is_ok = True
+                    if self._printer.get_stat(fs, "enabled") :
+                        if not self._printer.get_stat(fs, "filament_detected"):
+                            is_ok = False
+                            break
+                    else:
+                        is_ok = False
+                        break
+            elif step == 5:
                 is_ok = False
-                if step == 0:
-                    for extruder in self._printer.get_tools():
-                        is_ok = True
-                        temp = self._printer.get_dev_stat(extruder, "temperature")
-                        if temp < self.tool_target:
-                            is_ok = False
-                            break
-                elif step == 1:
-                    for dev in self._printer.get_heaters():
-                        is_ok = True
-                        if dev == "heater_bed":
-                            temp = self._printer.get_dev_stat("heater_bed", "temperature")
-                            if temp < self.bed_target:
-                                is_ok = False
-                                break
-                elif step == 2:
-                    for fan in self.fans:
-                        is_ok = True
-                        if fan == "fan":
-                            speed = self._printer.get_fan_speed("fan") * 100
-                            if speed < self.fan_speed:
-                                is_ok = False
-                                break
-                elif step == 3:
-                    for fan in self.fans:
-                        is_ok = True
-                        if 'hotend' in fan.lower():
-                            speed = self._printer.get_fan_speed(fan) * 100                        
-                            if speed < self.fan_speed:
-                                is_ok = False
-                                break
-                elif step == 4:
-                    filament_sensors = self._printer.get_filament_sensors()
-                    for fs in filament_sensors:
-                        is_ok = True
-                        if self._printer.get_stat(fs, "enabled") :
-                            if not self._printer.get_stat(fs, "filament_detected"):
-                                is_ok = False
-                                break
-                        else:
-                            is_ok = False
-                            break
-                elif step == 5:
-                    # self._printer.get_stat("bed_mesh", "profile_name")
-                    bm = self._printer.get_stat("bed_mesh")
+                bm = self._printer.get_stat("bed_mesh")
+                if bm is not None and self._printer.get_stat("bed_mesh", "profile_name") != '':
                     is_ok = True
-                    if bm is None:
+                                            
+            elif step == 6:
+                for i, cam in enumerate(self._printer.cameras):
+                    is_ok = os.path.exists(f"/dev/video{2*i}")
+                    if not cam["enabled"]:
                         is_ok = False
-                                                
-                elif step == 6:
-                    for i, cam in enumerate(self._printer.cameras):
-                        is_ok = True
-                        if not cam["enabled"]:
-                            is_ok = False
-                            break
-                elif step == 7:
+                        break
+            elif step == 7:
+                is_ok = False
+                connected_ssid = self.wifi.get_connected_ssid()
+                if connected_ssid is not None:
                     is_ok = True
-                    connected_ssid = self.wifi.get_connected_ssid()
-                    if connected_ssid is None:
-                        is_ok = False
 
-                if is_ok:
-                    GLib.idle_add(self.change_state, step, 0)
-                    self.steps.remove(step)
+            if is_ok:
+                GLib.idle_add(self.change_state, step, 0)
+                self.steps.remove(step)
 
-            end_time = time.time()
-            elapsed_time = end_time - self.start_time
-            if(self.time_out < elapsed_time):
-                self.is_check = False
-                for step in self.steps:
-                    GLib.idle_add(self.change_state, step, -1)
-                    self.steps.remove(step)
+        end_time = time.time()
+        elapsed_time = end_time - self.start_time
+        if(self.time_out < elapsed_time):
+            for step in self.steps:
+                GLib.idle_add(self.change_state, step, -1)
+                self.steps.remove(step)
 
     def confirm_action(self, widget):
         if self.is_poweroff_resume == 1:

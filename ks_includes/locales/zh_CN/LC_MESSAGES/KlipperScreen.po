@@ -41,7 +41,7 @@ msgid "Acceleration:"
 msgstr "加速度："
 
 msgid "Accept"
-msgstr "保存"
+msgstr "确定"
 
 msgid "Add profile"
 msgstr "添加配置文件"

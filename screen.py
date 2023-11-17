@@ -192,9 +192,6 @@ class KlipperScreen(Gtk.Window):
         except Exception as e:
             msg = f"Unknown error with the config:\n{e}"
             logging.exception(msg)
-
-        is_auto_shutdown = self._config.get_main_config().get('auto_shutdown_print_finish')
-        self.change_auto_shutdown_flag(is_auto_shutdown)
         #add end
 
     def initial_connection(self):
@@ -845,6 +842,12 @@ class KlipperScreen(Gtk.Window):
             {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL}
         ]
 
+        if params['script'].lower() == "save_config":
+                    buttons = [
+            {"name": _("Save"), "response": Gtk.ResponseType.OK},
+            {"name": _("Cancel"), "response": Gtk.ResponseType.CANCEL}
+        ]
+                    
         try:
             j2_temp = self.env.from_string(text)
             text = j2_temp.render()
@@ -873,10 +876,6 @@ class KlipperScreen(Gtk.Window):
         if method == "server.files.delete_directory":
             GLib.timeout_add_seconds(2, self.files.refresh_files)
             
-        #add by Sampson for poweroff resume at 20230817 begin
-        if params == {"script": "POWEROFF_RESUME"} and response_id == Gtk.ResponseType.CANCEL:
-            self._send_action(None, method, {"script": "REMOVE_POWEROFF_RESUME"})
-        #add end
     def _send_action(self, widget, method, params):
         logging.info(f"{method}: {params}")
         if isinstance(widget, Gtk.Button):
@@ -1108,14 +1107,6 @@ class KlipperScreen(Gtk.Window):
             self.vertical_mode = new_mode
             self.aspect_ratio = new_ratio
             logging.info(f"Vertical mode: {self.vertical_mode}")
-
-    #add by Sampson for auto shutdown after printing finish at 20230817 begin
-    def change_auto_shutdown_flag(self, value):
-        scripe = {"script": "AUTO_SHUTDOWN_OFF"}
-        if value :
-            scripe = {"script": "AUTO_SHUTDOWN"}
-        # self._send_action(None, "printer.gcode.script", scripe)
-    #add end
 
     def save_init_step(self):
         try:
