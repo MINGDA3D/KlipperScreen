@@ -17,6 +17,7 @@ from gi.repository import Gtk, Gdk, GLib, Pango
 from importlib import import_module
 from jinja2 import Environment
 from signal import SIGTERM
+from datetime import datetime
 
 from ks_includes import functions
 from ks_includes.KlippyWebsocket import KlippyWebsocket
@@ -94,8 +95,8 @@ class KlipperScreen(Gtk.Window):
     popup_timeout = None
     wayland = False
     windowed = False
+    notification_log = []
     auto_check = True
-
     def __init__(self, args):
         try:
             super().__init__(title="KlipperScreen")
@@ -164,7 +165,7 @@ class KlipperScreen(Gtk.Window):
             # Prevent this dialog from being destroyed
             self.dialogs = []
         self.set_screenblanking_timeout(self._config.get_main_config().get('screen_blanking'))
-
+        self.log_notification("KlipperScreen Started", 1)
         self.initial_connection()
 
         self.setup_init = 0
@@ -341,10 +342,20 @@ class KlipperScreen(Gtk.Window):
             self.panels[panel].activate()
         self.show_all()
 
+    def log_notification(self, message, level=0):
+        time = datetime.now().strftime("%H:%M:%S")
+        log_entry = {"message": message, "level": level, "time": time}
+        if len(self.notification_log) > 999:
+            del self.notification_log[0]
+        self.notification_log.append(log_entry)
+        self.process_update("notify_log", log_entry)
+
     def show_popup_message(self, message, level=3):
         self.close_screensaver()
         if self.popup_message is not None:
             self.close_popup_message()
+
+        self.log_notification(message, level)
 
         msg = Gtk.Button(label=f"{message}")
         msg.set_hexpand(True)
@@ -893,6 +904,7 @@ class KlipperScreen(Gtk.Window):
         if 'splash_screen' not in self.panels or remove:
             self.show_panel("splash_screen", None, remove_all=True)
         self.panels['splash_screen'].update_text(msg)
+        self.log_notification(msg, 0)
 
     def search_power_devices(self, devices):
         found_devices = []
@@ -1011,6 +1023,7 @@ class KlipperScreen(Gtk.Window):
         self.reinit_count = 0
         self.initializing = False
         self.printer.process_update(data['result']['status'])
+        self.log_notification("Printer Initialized", 1)
         return False
 
     def init_tempstore(self):
