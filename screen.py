@@ -169,7 +169,6 @@ class KlipperScreen(Gtk.Window):
         self.initial_connection()
 
         self.setup_init = 0
-        #add by Sampson for read klipper.conf at 20231106
         self.klippy_config_path = None
         self.klippy_config = None
         
@@ -193,7 +192,6 @@ class KlipperScreen(Gtk.Window):
         except Exception as e:
             msg = f"Unknown error with the config:\n{e}"
             logging.exception(msg)
-        #add end
 
     def initial_connection(self):
         self.printers = self._config.get_printers()
@@ -724,7 +722,6 @@ class KlipperScreen(Gtk.Window):
             return
         self.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
 
-        # add by Sampson for poweroff resume at 20230816 begin
         self.load_klipper_config()
         if self.klippy_config is not None and self.setup_init == 0:
             self.setup_init = self.klippy_config.getint("Variables", "setup_step", fallback=0)
@@ -743,7 +740,6 @@ class KlipperScreen(Gtk.Window):
             self.show_panel("self_check", "Self-check", remove_all=True)
         self.auto_check = False
 
-        #add end
 
     def state_startup(self):
         self.printer_initializing(_("Klipper is attempting to start"))
@@ -790,7 +786,6 @@ class KlipperScreen(Gtk.Window):
             self.printer.change_state(self.printer.state)
 
     def _websocket_callback(self, action, data):
-        # logging.debug("111111111111111111111")
         if self.connecting:
             return
         if action == "notify_klippy_disconnected":

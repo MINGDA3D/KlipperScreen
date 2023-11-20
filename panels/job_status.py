@@ -755,11 +755,11 @@ class Panel(ScreenPanel):
                 self.buttons['button_grid'].attach(Gtk.Label(), 0, 0, 1, 1)
                 self.buttons['button_grid'].attach(Gtk.Label(), 1, 0, 1, 1)
 
-            if self.filename:
-                self.buttons['button_grid'].attach(self.buttons['restart'], 2, 0, 1, 1)
-                self.enable_button("restart")
-            else:
-                self.disable_button("restart")
+            # if self.filename:
+            #     self.buttons['button_grid'].attach(self.buttons['restart'], 2, 0, 1, 1)
+            #     self.enable_button("restart")
+            # else:
+            #     self.disable_button("restart")
             if self.state != "cancelling":
                 self.buttons['button_grid'].attach(self.buttons['menu'], 3, 0, 1, 1)
                 self.can_close = True

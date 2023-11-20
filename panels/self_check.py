@@ -15,7 +15,6 @@ class Panel(ScreenPanel):
 
     def __init__(self, screen, title):
         super().__init__(screen, title)
-        #add by Sampson for self-test at 20230911 begin 
         self.themedir = os.path.join(pathlib.Path(__file__).parent.resolve().parent, "styles", screen.theme, "images")
         self.image_pass = os.path.join(self.themedir, "check_pass.svg")
         self.image_fail = os.path.join(self.themedir, "check_fail.svg")
@@ -24,7 +23,6 @@ class Panel(ScreenPanel):
         self.is_poweroff_resume = 0
         if self._screen.klippy_config is not None:
             self.is_poweroff_resume = self._screen.klippy_config.getint("Variables", "resumeflag", fallback=0)
-        #add end        
 
         self.network_interfaces = netifaces.interfaces()
         self.wireless_interfaces = [iface for iface in self.network_interfaces if iface.startswith('w')]
@@ -42,7 +40,6 @@ class Panel(ScreenPanel):
 
         self.test_items = ["Nozzle Heating", "Hot Bed Heating", "Nozzle Cooling Fan", "Hotend Cooling Fan", "Filament sensor", "Auto Leveling", "Camera", "WiFi"]
         self.steps = [x for x in range(len(self.test_items))]
-
 
         grid = self._gtk.HomogeneousGrid()
         grid.set_row_homogeneous(False)
@@ -64,7 +61,6 @@ class Panel(ScreenPanel):
         
         self.labels['confirm'] = self._gtk.Button(None, "Confirm", "color1")
         self.labels['confirm'].connect("clicked", self.confirm_action)
-        # self.labels['confirm'].set_sensitive(False)
         grid.attach(self.labels['confirm'], 0, len(self.test_items)+1, 4, 1)
 
         for i in range(len(self.test_items)):
@@ -98,9 +94,17 @@ class Panel(ScreenPanel):
                 if speed < self.fan_speed:
                     self._screen._ws.klippy.gcode_script(f"M106 S{self.fan_speed * 2.55:.0f}")
 
+        #bed mesh
+        bm = self._printer.get_stat("bed_mesh")
+        if bm is not None: 
+            pn = self._printer.get_stat("bed_mesh", "profile_name")
+            ps = self._printer.get_stat("bed_mesh", "profiles")
+            if pn == "" and 'default' in ps:
+                script = 'BED_MESH_PROFILE LOAD="default"'
+                self._screen._ws.klippy.gcode_script(script)                           
+
         self.content.add(grid)        
 
-   #add by Sampson for self-test at 20230911 begin  
     def remove_all_dialog(self):
         self.close_screensaver()
         for dialog in self.screen.dialogs:
@@ -115,9 +119,7 @@ class Panel(ScreenPanel):
         elif state == 0:
             imagePath = self.image_pass
         self.images[step].set_from_file(imagePath)
-#add end
 
-    #add by Sampson for self-test at 20230911
     def self_test(self):        
         for step in self.steps:
             is_ok = False
