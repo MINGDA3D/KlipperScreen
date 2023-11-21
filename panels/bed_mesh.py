@@ -250,7 +250,8 @@ class Panel(ScreenPanel):
 
     def calibrate_mesh(self, widget):
         widget.set_sensitive(False)
-        self._screen.show_popup_message(_("Calibrating"), level=1)
+        self._screen.show_popup_message(_("Please wait until the bed is heated before calibrating."), level=1)
+        self._screen._ws.klippy.gcode_script("M190 S65")
         if self._printer.get_stat("toolhead", "homed_axes") != "xyz":
             self._screen._ws.klippy.gcode_script("G28")
 

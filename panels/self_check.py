@@ -195,6 +195,7 @@ class Panel(ScreenPanel):
                 self.steps.remove(step)
 
     def confirm_action(self, widget):
+        self._screen.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
         if self.is_poweroff_resume == 1:
             if self._screen._ws.connected:
                 script = {"script": "POWEROFF_RESUME"}
@@ -202,7 +203,6 @@ class Panel(ScreenPanel):
                                               _("Power loss recovery, is resume print?"),
                                               "printer.gcode.script", script)
                 self.is_poweroff_resume = 0            
-        self._screen.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
 
     def process_update(self, action, data):
         if action == "notify_status_update":

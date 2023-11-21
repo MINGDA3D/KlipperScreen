@@ -66,10 +66,6 @@ class Panel(ScreenPanel):
             }
             self.add_option("lang", self.langs, lang, self.langs[lang])
 
-
-
-
-
         grid.attach(self.labels['lang_menu'], 1, 1, 4, 5)
         self.content.add(grid)
         self.initialized = True

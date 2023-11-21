@@ -3,6 +3,7 @@ import os
 import gi
 import shutil 
 import datetime
+import subprocess
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Pango, GLib
@@ -347,6 +348,9 @@ class Panel(ScreenPanel):
                 self._screen._ws.send_method("machine.shutdown")
 
     def show_reset_confirm(self, widget):
+        if self._printer.state in ["printing", "paused"]:
+            self._screen.show_popup_message(_("Please wait for the print job to end"), level=1)
+            return
         scroll = self._gtk.ScrolledWindow()
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -367,14 +371,26 @@ class Panel(ScreenPanel):
         self._gtk.remove_dialog(dialog)
         if response_id == Gtk.ResponseType.OK:
             self._screen.show_popup_message(_("Resetting printer, will restart, please wait..."), level=1)
-            src_dir = '/home/mingda/printer_data'  
-            origin_dir = '/usr/local/src/printer_backup'  
+            source_dir = '/home/mingda/printer_data'
+            origin_dir = '/usr/local/src/printer_data'  
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")   
-            backup_file = f"printer_data_{timestamp}"  
-            backup_file = os.path.join('/tmp', backup_file)
+            target_dir = f"printer_data_{timestamp}.tar.gz"  
+            target_dir = os.path.join('/tmp', target_dir)
             try:  
-                os.system(f"mv {src_dir} {backup_file}")
-                os.system(f"cp -ar {origin_dir} {src_dir}") 
+                mounted_devices = subprocess.check_output("mount | awk '{print $1}'", shell=True).decode().split('\n')
+                usb_devices = [device for device in mounted_devices if device.startswith("/dev/sd")]
+                for u in usb_devices:
+                    os.system(f"sudo umount {u}")
+                os.system(f"tar -zcvf {target_dir} {source_dir} && rm -rf {source_dir}")
+ 
+            except Exception as e:  
+                self._screen.show_popup_message(_("Backup fail"), level=3)
+                logging.exception(f"An error occurred: {e}")
+                return
+            try:
+                os.system(f"cp -ar {origin_dir} ~/") 
                 self._screen._ws.klippy.restart_firmware()
             except Exception as e:  
+                self._screen.show_popup_message(_("Reset fail"), level=3)
+                print(f"error = {e}")
                 logging.exception(f"An error occurred: {e}")
