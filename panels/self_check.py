@@ -21,8 +21,12 @@ class Panel(ScreenPanel):
         self.image_loading = os.path.join(self.themedir, "loading.gif")
         self.images = []
         self.is_poweroff_resume = 0
+        self.fileposition = 0
+        self.filename = ""
         if self._screen.klippy_config is not None:
             self.is_poweroff_resume = self._screen.klippy_config.getint("Variables", "resumeflag", fallback=0)
+            self.filename = self._screen.klippy_config.get("Variables", "filepath", fallback="")
+            self.fileposition = self._screen.klippy_config.getint("Variables", "fileposition", fallback=0)
 
         self.network_interfaces = netifaces.interfaces()
         self.wireless_interfaces = [iface for iface in self.network_interfaces if iface.startswith('w')]
@@ -94,14 +98,14 @@ class Panel(ScreenPanel):
                 if speed < self.fan_speed:
                     self._screen._ws.klippy.gcode_script(f"M106 S{self.fan_speed * 2.55:.0f}")
 
-        #bed mesh
-        bm = self._printer.get_stat("bed_mesh")
-        if bm is not None: 
-            pn = self._printer.get_stat("bed_mesh", "profile_name")
-            ps = self._printer.get_stat("bed_mesh", "profiles")
-            if pn == "" and 'default' in ps:
-                script = 'BED_MESH_PROFILE LOAD="default"'
-                self._screen._ws.klippy.gcode_script(script)                           
+        # #bed mesh
+        # bm = self._printer.get_stat("bed_mesh")
+        # if bm is not None: 
+        #     pn = self._printer.get_stat("bed_mesh", "profile_name")
+        #     ps = self._printer.get_stat("bed_mesh", "profiles")
+        #     if pn == "" and 'default' in ps:
+        #         script = 'BED_MESH_PROFILE LOAD="default"'
+        #         self._screen._ws.klippy.gcode_script(script)                           
 
         self.content.add(grid)        
 
@@ -195,14 +199,21 @@ class Panel(ScreenPanel):
                 self.steps.remove(step)
 
     def confirm_action(self, widget):
+        self._screen._ws.klippy.gcode_script("TURN_OFF_HEATERS")                           
         self._screen.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
-        if self.is_poweroff_resume == 1:
+        if self.is_poweroff_resume == 1 and self.filename != "" and self.fileposition != 0:
             if self._screen._ws.connected:
                 script = {"script": "POWEROFF_RESUME"}
                 self._screen._confirm_send_action(None,
                                               _("Power loss recovery, is resume print?"),
                                               "printer.gcode.script", script)
-                self.is_poweroff_resume = 0            
+                # filename = self.filename.replace("'", "")
+                # logging.info(f"Starting print: {filename}")
+                # self._screen._ws.klippy.print_start(filename)
+                # self._screen._ws.klippy.gcode_script(f"M23 {filename}")                           
+                # self._screen._ws.klippy.gcode_script(f"M26 S{self.fileposition}")                           
+                # self._screen._ws.klippy.gcode_script(f"M24")                           
+                self.is_poweroff_resume = 0
 
     def process_update(self, action, data):
         if action == "notify_status_update":

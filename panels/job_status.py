@@ -468,6 +468,7 @@ class Panel(ScreenPanel):
         if response_id == Gtk.ResponseType.OK:
             self._screen._ws.klippy.print_cancel()
         elif response_id == Gtk.ResponseType.YES:
+            self._screen._ws.klippy.gcode_script("REMOVE_POWEROFF_RESUME")
             self._screen._ws.klippy.emergency_stop()
             self._screen._ws.klippy.gcode_script("FIRMWARE_RESTART")
 

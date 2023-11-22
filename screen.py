@@ -725,6 +725,15 @@ class KlipperScreen(Gtk.Window):
             return
         self.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
 
+        #bed mesh
+        bm = self.printer.get_stat("bed_mesh")
+        if bm is not None: 
+            pn = self.printer.get_stat("bed_mesh", "profile_name")
+            ps = self.printer.get_stat("bed_mesh", "profiles")
+            if pn == "" and 'default' in ps:
+                script = 'BED_MESH_PROFILE LOAD="default"'
+                self._ws.klippy.gcode_script(script)
+
         self.load_klipper_config()
         if self.klippy_config is not None and self.setup_init == 0:
             self.setup_init = self.klippy_config.getint("Variables", "setup_step", fallback=0)

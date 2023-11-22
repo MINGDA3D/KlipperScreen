@@ -72,7 +72,8 @@ class Panel(ScreenPanel):
             'uk': 'Українська',
             'zh_CN': '简体中文',
             'zh_TW': '繁體中文',
-            'de_formal': 'Deutsch (Formal)'
+            'de_formal': 'Deutsch (Formal)',
+            'lt': 'lietuvių',
         }        
         for lang in self._config.lang_list:
             self.langs[lang] = {
