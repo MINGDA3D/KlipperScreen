@@ -356,7 +356,7 @@ class Panel(ScreenPanel):
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox.set_halign(Gtk.Align.CENTER)
         vbox.set_valign(Gtk.Align.CENTER)
-        label = Gtk.Label(label=_("Are you sure you wish to reset the printer?") + "\n\n" + _("Klipper will reboot"))
+        label = Gtk.Label(label=_("Are you sure you wish to reset the printer?") + "\n\n" + _("Data will be deleted"))
         vbox.add(label)
         scroll.add(vbox)
         buttons = [

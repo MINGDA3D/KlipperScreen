@@ -5,6 +5,8 @@ import pathlib
 # import bed_mesh
 import netifaces
 import time
+import shutil
+
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, GLib, Pango
 
@@ -23,6 +25,7 @@ class Panel(ScreenPanel):
         self.is_poweroff_resume = 0
         self.fileposition = 0
         self.filename = ""
+        self.gcodes_path = None
         if self._screen.klippy_config is not None:
             self.is_poweroff_resume = self._screen.klippy_config.getint("Variables", "resumeflag", fallback=0)
             self.filename = self._screen.klippy_config.get("Variables", "filepath", fallback="")
@@ -96,16 +99,18 @@ class Panel(ScreenPanel):
             if fan == "fan":
                 speed = self._printer.get_fan_speed(fan) * 100
                 if speed < self.fan_speed:
-                    self._screen._ws.klippy.gcode_script(f"M106 S{self.fan_speed * 2.55:.0f}")
+                    self._screen._ws.klippy.gcode_script(f"M106 S{self.fan_speed * 2.55:.0f}")                           
 
-        # #bed mesh
-        # bm = self._printer.get_stat("bed_mesh")
-        # if bm is not None: 
-        #     pn = self._printer.get_stat("bed_mesh", "profile_name")
-        #     ps = self._printer.get_stat("bed_mesh", "profiles")
-        #     if pn == "" and 'default' in ps:
-        #         script = 'BED_MESH_PROFILE LOAD="default"'
-        #         self._screen._ws.klippy.gcode_script(script)                           
+        if self.is_poweroff_resume == 1 and self.filename != "" and self.fileposition != 0:
+            if "virtual_sdcard" in self._screen.printer.get_config_section_list():
+                vsd = self._screen.printer.get_config_section("virtual_sdcard")
+                if "path" in vsd:
+                    self.gcodes_path = os.path.expanduser(vsd['path'])
+            if self.gcodes_path is not None:
+                self.filename = self.filename.replace("'", "")
+                src = os.path.join(self.gcodes_path, self.filename)
+                dst = os.path.join(self.gcodes_path, "plr.gcode")                
+                GLib.idle_add(self.copy_gcode, src, dst)
 
         self.content.add(grid)        
 
@@ -206,15 +211,12 @@ class Panel(ScreenPanel):
                 script = {"script": "POWEROFF_RESUME"}
                 self._screen._confirm_send_action(None,
                                               _("Power loss recovery, is resume print?"),
-                                              "printer.gcode.script", script)
-                # filename = self.filename.replace("'", "")
-                # logging.info(f"Starting print: {filename}")
-                # self._screen._ws.klippy.print_start(filename)
-                # self._screen._ws.klippy.gcode_script(f"M23 {filename}")                           
-                # self._screen._ws.klippy.gcode_script(f"M26 S{self.fileposition}")                           
-                # self._screen._ws.klippy.gcode_script(f"M24")                           
-                self.is_poweroff_resume = 0
+                                              "printer.gcode.script", script)                          
+        self.is_poweroff_resume = 0
 
     def process_update(self, action, data):
         if action == "notify_status_update":
             self.self_test()
+            
+    def copy_gcode(self, src, dst):
+        shutil.copy2(src, dst)

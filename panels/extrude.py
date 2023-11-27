@@ -239,12 +239,19 @@ class Panel(ScreenPanel):
         self.speed = speed
 
     def extrude(self, widget, direction):
-        self._screen._ws.klippy.gcode_script(KlippyGcodes.EXTRUDE_REL)
-        if direction == "-":
-            self._screen._send_action(widget, "printer.gcode.script",
-                                  {"script": f"G1 E{direction}75 F1200"})
+        temp = self._printer.get_dev_stat(self.current_extruder, "temperature")
+        if temp < 200:
+            script = {"script": "M104 S240"}
+            self._screen._confirm_send_action(None,
+                                              _("The nozzle temperature is too low, Are you sure you want to heat it?"),
+                                              "printer.gcode.script", script)
         else:
-            self._screen._send_action(widget, "printer.gcode.script",
+            self._screen._ws.klippy.gcode_script(KlippyGcodes.EXTRUDE_REL)
+            if direction == "-":
+                self._screen._send_action(widget, "printer.gcode.script",
+                                  {"script": f"G1 E{direction}75 F1200"})
+            else:
+                self._screen._send_action(widget, "printer.gcode.script",
                                   {"script": f"G1 E{direction}{self.distance} F{self.speed * 60}"})
 
     def load_unload(self, widget, direction):
