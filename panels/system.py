@@ -371,16 +371,20 @@ class Panel(ScreenPanel):
         self._gtk.remove_dialog(dialog)
         if response_id == Gtk.ResponseType.OK:
             self._screen.show_popup_message(_("Resetting printer, will restart, please wait..."), level=1)
-            source_dir = '/home/mingda/printer_data'
+            source_dir = '~/printer_data'
             origin_dir = '/usr/local/src/printer_data'  
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")   
             target_dir = f"printer_data_{timestamp}.tar.gz"  
             target_dir = os.path.join('/tmp', target_dir)
+            gcodes = os.path.join(source_dir, 'gcodes')
+            logs = os.path.join(source_dir, 'logs')
             try:  
                 mounted_devices = subprocess.check_output("mount | awk '{print $1}'", shell=True).decode().split('\n')
                 usb_devices = [device for device in mounted_devices if device.startswith("/dev/sd")]
                 for u in usb_devices:
                     os.system(f"sudo umount {u}")
+                os.system(f"rm -rf {gcodes}")
+                os.system(f"rm -rf {logs}")
                 os.system(f"tar -zcvf {target_dir} {source_dir} && rm -rf {source_dir}")
  
             except Exception as e:  
