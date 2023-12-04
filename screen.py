@@ -742,8 +742,6 @@ class KlipperScreen(Gtk.Window):
             self.show_panel("setup_wizard", "Choose Language", remove_all=True)
         elif self.setup_init == 2:
             self.show_panel("select_timezone", "Choose Timezone", remove_all=True)
-        # elif self.setup_init == 3:
-            # self.show_panel("zprobe", "Calibrate Probe", remove_all=True)
         elif self.setup_init == 3:
             self.show_panel("zcalibrate_mesh", "Leveling", remove_all=True)
         elif self.setup_init == 4:

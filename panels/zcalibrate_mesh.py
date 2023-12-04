@@ -99,7 +99,8 @@ class Panel(ScreenPanel):
         self.active_mesh = profile
         self.update_graph(profile=profile)
         # self.buttons['clear'].set_sensitive(True)
-        # self.labels['next'].set_sensitive(True)
+        self.labels['next'].set_sensitive(True)
+        self.labels['back'].set_sensitive(True)
 
     def retrieve_bm(self, profile):
         if profile is None:
@@ -266,8 +267,11 @@ class Panel(ScreenPanel):
 
     def calibrate_mesh(self, widget):
         widget.set_sensitive(False)
-        self._screen.show_popup_message(_("Please wait until the bed is heated before calibrating."), level=1)
+        self.labels['back'].set_sensitive(False)
+        self.labels['next'].set_sensitive(False)
+        self._screen.show_popup_message(_("Please wait until the bed and nozzle is heated before calibrating."), level=1)
         self._screen._ws.klippy.gcode_script("M190 S65")
+        self._screen._ws.klippy.gcode_script("M109 S170")
         if self._printer.get_stat("toolhead", "homed_axes") != "xyz":
             self._screen._ws.klippy.gcode_script("G28")
 

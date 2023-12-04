@@ -45,7 +45,7 @@ class Panel(ScreenPanel):
                 from ks_includes.wifi import WifiManager
             self.wifi = WifiManager(self.wireless_interfaces[0])
 
-        self.test_items = ["Nozzle Heating", "Hot Bed Heating", "Nozzle Cooling Fan", "Hotend Cooling Fan", "Filament sensor", "Auto Leveling", "Camera", "WiFi"]
+        self.test_items = ["Nozzle Heating", "Hot Bed Heating", "Nozzle Cooling Fan", "Hotend Cooling Fan", "Filament Detection", "Auto Leveling", "Camera", "WiFi"]
         self.steps = [x for x in range(len(self.test_items))]
 
         grid = self._gtk.HomogeneousGrid()
