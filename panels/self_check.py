@@ -76,7 +76,7 @@ class Panel(ScreenPanel):
         self.is_check = True
         self.tool_target = 50
         self.bed_target = 40
-        self.fan_speed = 5
+        self.fan_speed = 35
         self.fans = self._printer.get_fans()
         self.start_time = time.time()
         self.time_out = 60     #seconds
@@ -152,7 +152,7 @@ class Panel(ScreenPanel):
                     is_ok = True
                     if fan == "fan":
                         speed = self._printer.get_fan_speed("fan") * 100
-                        if speed < self.fan_speed:
+                        if speed < self.fan_speed-5:
                             is_ok = False
                             break
             elif step == 3:
@@ -160,7 +160,7 @@ class Panel(ScreenPanel):
                     is_ok = True
                     if 'hotend' in fan.lower():
                         speed = self._printer.get_fan_speed(fan) * 100                        
-                        if speed < self.fan_speed:
+                        if speed < self.fan_speed-5:
                             is_ok = False
                             break
             elif step == 4:
@@ -205,6 +205,7 @@ class Panel(ScreenPanel):
 
     def confirm_action(self, widget):
         self._screen._ws.klippy.gcode_script("TURN_OFF_HEATERS")                           
+        self._screen._ws.klippy.gcode_script("M106 S0")                           
         self._screen.show_panel("main_menu", None, remove_all=True, items=self._config.get_menu_items("__main"))
         if self.is_poweroff_resume == 1 and self.filename != "" and self.fileposition != 0:
             if self._screen._ws.connected:

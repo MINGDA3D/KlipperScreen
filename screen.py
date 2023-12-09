@@ -892,6 +892,10 @@ class KlipperScreen(Gtk.Window):
         if method == "server.files.delete_directory":
             GLib.timeout_add_seconds(2, self.files.refresh_files)
             
+        #add by Sampson for poweroff resume at 20230817 begin
+        if params == {"script": "POWEROFF_RESUME"} and response_id == Gtk.ResponseType.CANCEL:
+            self._send_action(None, method, {"script": "REMOVE_POWEROFF_RESUME"})
+        #add end
     def _send_action(self, widget, method, params):
         logging.info(f"{method}: {params}")
         if isinstance(widget, Gtk.Button):
