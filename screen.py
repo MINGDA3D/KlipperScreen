@@ -116,7 +116,7 @@ class KlipperScreen(Gtk.Window):
         self.lang_ltr = set_text_direction(self._config.get_main_config().get("language", None))
         self.env = Environment(extensions=["jinja2.ext.i18n"], autoescape=True)
         self.env.install_gettext_translations(self._config.get_lang())
-		
+
         self.connect("key-press-event", self._key_press_event)
         self.connect("configure_event", self.update_size)
         monitor = Gdk.Display.get_default().get_primary_monitor()
@@ -178,7 +178,7 @@ class KlipperScreen(Gtk.Window):
     def load_klipper_config(self):
         try:
             variables = self.printer.get_config_section("save_variables")
-            # variables = self.printer.get_config_section("stepper_z")
+            
             if "filename" in variables:
                 self.klippy_config_path = os.path.expanduser(variables['filename'])
             if self.klippy_config_path is not None:
@@ -892,10 +892,9 @@ class KlipperScreen(Gtk.Window):
         if method == "server.files.delete_directory":
             GLib.timeout_add_seconds(2, self.files.refresh_files)
             
-        #add by Sampson for poweroff resume at 20230817 begin
         if params == {"script": "POWEROFF_RESUME"} and response_id == Gtk.ResponseType.CANCEL:
             self._send_action(None, method, {"script": "REMOVE_POWEROFF_RESUME"})
-        #add end
+
     def _send_action(self, widget, method, params):
         logging.info(f"{method}: {params}")
         if isinstance(widget, Gtk.Button):
