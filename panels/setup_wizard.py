@@ -20,12 +20,12 @@ class Panel(ScreenPanel):
 
         grid = self._gtk.HomogeneousGrid()
 
-        self.labels['skip'] = self._gtk.Button(None, "Skip All", "color1", .66)
+        self.labels['skip'] = self._gtk.Button(None, _("Skip All"), "color1", .66)
         self.labels['skip'].connect("clicked", self.on_skip_click)
         grid.attach(self.labels['skip'], 0, 0, 1, 1)
 
         self.labels['tip'] = Gtk.Label()
-        self.labels['tip'].set_text("Choose a language")
+        self.labels['tip'].set_text(_("Choose a language"))
         grid.attach(self.labels['tip'], 1, 0, 3, 1)
 
         self.labels['next'] = self._gtk.Button("arrow-right", None, "color1", .66)
@@ -137,10 +137,11 @@ class Panel(ScreenPanel):
     def on_next_click(self, widget=None):
         self._screen.setup_init = 2
         self._screen.save_init_step()
-        self._screen.show_panel("select_timezone", "Choose Timezone", remove_all=True)
+        self._screen.show_panel("select_timezone", _("Choose Timezone"), remove_all=True)
         
     def change_language(self, widget, lang_name, lang_code):
-        self.labels['tip'].set_markup(f"Current language: {lang_name}")
+        message = _("Current language: ") + lang_name
+        self.labels['tip'].set_markup(message)
         self._screen.change_language_without_reload(widget, lang_code)
         # self.labels['next'].set_sensitive(True)
     

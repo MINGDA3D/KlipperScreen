@@ -34,7 +34,7 @@ class Panel(ScreenPanel):
 
     def activate(self):
         # if only 1 cam start playing fullscreen
-        if len(self._printer.cameras) == 11:
+        if len(self._printer.cameras) == 1:
             cam = next(iter(self._printer.cameras))
             if cam['enabled']:
                 self.play(None, cam)

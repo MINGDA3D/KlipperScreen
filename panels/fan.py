@@ -55,13 +55,7 @@ class Panel(ScreenPanel):
         logging.info(f"Adding fan: {fan}")
         changeable = any(fan.startswith(x) or fan == x for x in CHANGEABLE_FANS)
         name = Gtk.Label()
-        # fan_name = _("Part Fan") if fan == "fan" else fan.split()[1]
-        if fan == "fan":
-            fan_name = _("Part Fan")
-        elif fan[:3] == "fan" and fan[3].isdigit():
-            fan_name = _("Part Fan%s") % fan[3:]
-        else:
-            fan_name = fan.split()[1]        
+        fan_name = _("Part Fan") if fan == "fan" else fan.split()[1]
         name.set_markup(f"\n<big><b>{fan_name}</b></big>\n")
         name.set_hexpand(True)
         name.set_vexpand(True)
@@ -135,8 +129,6 @@ class Panel(ScreenPanel):
 
         if fan == "fan":
             self._screen._ws.klippy.gcode_script(f"M106 S{value * 2.55:.0f}")
-        elif fan[:3] and fan[3].isdigit():
-            self._screen._ws.klippy.gcode_script(f"M106 P{fan[3:]} S{value * 2.55:.0f}")            
         else:
             self._screen._ws.klippy.gcode_script(f"SET_FAN_SPEED FAN={fan.split()[1]} SPEED={float(value) / 100}")
         # Check the speed in case it wasn't applied
