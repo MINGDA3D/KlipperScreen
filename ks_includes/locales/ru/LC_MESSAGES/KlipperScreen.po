@@ -993,3 +993,144 @@ msgstr "мм³/с"
 
 #~ msgid "Load Average"
 #~ msgstr "Средняя нагрузка"
+
+msgid "Leveling"
+msgstr "Калибровка"
+
+msgid "The nozzle temperature is too low, Are you sure you want to heat it?"
+msgstr "Температура сопла слишком низкая. Вы уверены, что хотите её нагреть?"
+
+msgid "General"
+msgstr "Общее"
+
+msgid "Turn off"
+msgstr "Выключить"
+
+msgid "Brightest"
+msgstr "Самый яркий"
+
+msgid "Manual"
+msgstr "Ручной режим"
+
+msgid "Troubleshooting"
+msgstr "Устранение неполадок"
+
+msgid "Cautions"
+msgstr "Предостережения"
+
+msgid "Maintenance"
+msgstr "Обслуживание"
+
+msgid "Calibration"
+msgstr "Калибровка"
+
+msgid "XY Offset"
+msgstr "Смещение XY"
+
+msgid "Z Offset"
+msgstr "Смещение Z"
+
+msgid "Only one extruder does not require calibration."
+msgstr "Только один экструдер не требует калибровки."
+
+msgid "Please confirm left extruder position."
+msgstr "Пожалуйста, подтвердите позицию левого экструдера."
+
+msgid "Need to recalculate the offset value."
+msgstr "Необходимо пересчитать значение смещения."
+
+msgid "Error writing configuration"
+msgstr "Ошибка записи конфигурации"
+
+msgid "Please wait for the camera initialization to complete."
+msgstr "Пожалуйста, подождите завершения инициализации камеры."
+
+msgid "Please wait for the camera's fill light to light up for 5 seconds before clicking 'Start'"
+msgstr "Пожалуйста, подождите, пока заполнитель света камеры не засветится в течение 5 секунд, прежде чем нажать 'Старт'."
+
+msgid "Couldn't get the calibration camera position."
+msgstr "Не удалось получить позицию калибровочной камеры."
+
+msgid "Need home axis"
+msgstr "Необходима начальная ось"
+
+msgid "Choose Language"
+msgstr "Выберите язык"
+
+msgid "Choose Timezone"
+msgstr "Выберите часовой пояс"
+
+msgid "Select WiFi"
+msgstr "Выберите WiFi"
+
+msgid "Self-check"
+msgstr "Самопроверка"
+
+msgid "Nozzle Heating"
+msgstr "Нагрев сопла"
+
+msgid "Hot Bed Heating"
+msgstr "Нагрев подогреваемой платы"
+
+msgid "Nozzle Cooling Fan"
+msgstr "Вентилятор охлаждения сопла"
+
+msgid "Hotend Cooling Fan"
+msgstr "Вентилятор охлаждения Hotend"
+
+msgid "Filament Detection"
+msgstr "Обнаружение филамента"
+
+msgid "Auto Leveling"
+msgstr "Автоматическая калибровка"
+
+msgid "WiFi"
+msgstr "WiFi"
+
+msgid "Power loss recovery, is resume print?"
+msgstr "Восстановление после потери питания, продолжить печать?"
+
+msgid "Please wait until the bed and nozzle are heated before calibrating."
+msgstr "Пожалуйста, подождите, пока стол и сопло не прогреются, прежде чем производить калибровку."
+
+msgid "Current language:"
+msgstr "Текущий язык:"
+
+msgid "Skip All"
+msgstr "Пропустить все"
+
+msgid "Do not touch the printer during self-check."
+msgstr "Не касайтесь принтера во время самопроверки."
+
+msgid "Confirm"
+msgstr "Подтвердить"
+
+msgid "Current timezone:"
+msgstr "Текущий часовой пояс:"
+
+msgid "Choose a timezone"
+msgstr "Выберите часовой пояс"
+
+msgid "Choose a language"
+msgstr "Выберите язык"
+
+msgid "Please wait for the print job to end"
+msgstr "Пожалуйста, подождите завершения печати"
+
+msgid "Are you sure you wish to reset the printer?"
+msgstr "Вы уверены, что хотите сбросить принтер?"
+
+msgid "Data will be deleted"
+msgstr "Данные будут удалены"
+
+msgid "Reset Printer"
+msgstr "Сбросить принтер"
+
+msgid "Resetting printer, will restart, please wait..."
+msgstr "Сброс принтера, будет перезапущен, подождите..."
+
+msgid "Reset"
+msgstr "Сброс"
+
+msgid "Poweroff"
+msgstr "Выключение"
